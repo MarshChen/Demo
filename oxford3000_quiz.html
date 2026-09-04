@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Oxford 3000 中文測驗</title>
+<title>Oxford 3000 單字測驗</title>
 <style>
   :root{
     --bg:#f6f7fb; --card:#ffffff; --text:#1f2430; --muted:#6b7280;
@@ -78,6 +78,11 @@
   .review-item .rword{font-weight:600;}
   .review-item .rans{color:var(--muted);}
   .review-item .rans.empty{color:#d97706; font-style:italic;}
+  .list-speak-btn{
+    flex:0 0 auto; background:none; border:none; cursor:pointer; font-size:1rem; padding:2px 8px;
+    color:var(--accent); border-radius:8px;
+  }
+  .list-speak-btn:hover{color:var(--accent2); background:#f2effe;}
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
     background:#111827; color:#fff; padding:10px 18px; border-radius:10px; font-size:.9rem;
@@ -132,7 +137,12 @@
   }
 
   /* ---- Flashcards ---- */
-  .flip-card{perspective:1200px; margin:24px auto; max-width:460px; width:100%; height:340px; cursor:pointer;}
+  .flip-card{perspective:1200px; margin:24px auto; max-width:460px; width:100%; height:340px; cursor:pointer; position:relative;}
+  .flip-card .speak-btn{
+    position:absolute; top:10px; right:10px; z-index:5; width:44px; min-height:44px;
+    background:#fff; color:var(--accent); border:2px solid var(--border);
+  }
+  .flip-card .speak-btn:hover{background:#f2effe;}
   .flip-card-inner{
     position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;
   }
@@ -155,6 +165,11 @@
     line-height:1.4;
   }
   .flip-related{font-size:.8rem; color:var(--muted);}
+  .flip-phonetic{font-size:1rem; color:var(--accent); font-family:ui-monospace,Consolas,monospace;}
+  .flip-soundalike{
+    font-size:.85rem; color:#b45309; background:#fef3c7; border-radius:10px; padding:8px 12px;
+    line-height:1.4;
+  }
   .view-toggle{display:flex; gap:8px;}
   .view-toggle button.active{background:var(--accent); color:#fff; border-color:var(--accent);}
 
@@ -197,7 +212,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>📘 Oxford 3000 中文測驗</h1>
+  <h1>📘 Oxford 3000 英文測驗</h1>
   <p class="sub">看英文單字，輸入你認為的中文意思。測驗結束後可產生 JSON，交給 AI 幫你打分數。</p>
 
   <!-- SETUP SCREEN -->
@@ -241,7 +256,7 @@
     </div>
     <div class="row">
       <div class="field">
-        <label>你的名字（選填，會寫入結果 JSON）</label>
+        <label>你的名字（選填，會寫入結果 JSON，並記住在此瀏覽器）</label>
         <input type="text" id="userName" placeholder="例如：小明">
       </div>
     </div>
@@ -259,6 +274,15 @@
       <div class="progress-bar"><div class="progress-fill" id="dashProgressFill"></div></div>
       <div class="level-progress-row" id="levelProgressRow"></div>
       <div class="badge-row" id="badgeRow"></div>
+    </div>
+
+    <div class="row" style="margin:16px 0 4px; align-items:center; justify-content:space-between;">
+      <span class="sub" style="margin:0;">進度備份（可匯出後在其他裝置/瀏覽器匯入還原）</span>
+      <div class="actions" style="margin:0;">
+        <button type="button" class="secondary" id="exportProgressBtn">📤 匯出進度</button>
+        <button type="button" class="secondary" id="importProgressBtn">📥 匯入進度</button>
+        <input type="file" id="importProgressFile" accept="application/json,.json" class="hidden" aria-label="匯入進度檔案">
+      </div>
     </div>
 
     <div class="row hidden" id="reinforceRow" style="margin:16px 0 4px;">
@@ -361,18 +385,24 @@
     <div id="flashcardFlipView" class="hidden" style="margin-top:16px;">
       <div class="progress-text" id="flipProgressText"></div>
       <div class="flip-card" id="flipCard">
+        <button type="button" class="icon-btn speak-btn" id="flipSpeakBtn" title="播放發音">🔊</button>
         <div class="flip-card-inner">
-          <div class="flip-card-front"><div class="word" id="flipWord">word</div></div>
+          <div class="flip-card-front">
+            <div class="word" id="flipWord">word</div>
+            <div class="flip-phonetic hidden" id="flipPhoneticFront"></div>
+          </div>
           <div class="flip-card-back">
             <div class="word" id="flipMeaning" style="font-size:1.6rem;">意思</div>
             <div class="flip-pos hidden" id="flipPos"></div>
+            <div class="flip-phonetic hidden" id="flipPhonetic"></div>
+            <div class="flip-soundalike hidden" id="flipSoundAlike"></div>
             <div class="flip-example hidden" id="flipExample"></div>
             <div class="flip-mnemonic hidden" id="flipMnemonic"></div>
             <div class="flip-related hidden" id="flipRelated"></div>
           </div>
         </div>
       </div>
-      <p class="sub" style="text-align:center;">點卡片或按空白鍵翻面</p>
+      <p class="sub" style="text-align:center;">點卡片或按空白鍵翻面，按 🔊 或 <kbd>S</kbd> 鍵播放發音</p>
       <div class="nav-actions">
         <button class="secondary" id="flipPrevBtn">← 上一張</button>
         <button id="flipNextBtn">下一張 →</button>
@@ -428,6 +458,7 @@ function levelMatches(w){
 
 // ---- Mastery store (persistent across sessions) ----
 const MASTERY_KEY = 'oxford3000_mastery_v1';
+const NAME_KEY = 'oxford3000_username_v1';
 function loadMastery(){
   try {
     const raw = localStorage.getItem(MASTERY_KEY);
@@ -611,6 +642,15 @@ el('discardResumeBtn').addEventListener('click', () => {
 
 checkForSavedProgress();
 
+// ---- Remember the user's name across sessions ----
+try {
+  const savedName = localStorage.getItem(NAME_KEY);
+  if (savedName) el('userName').value = savedName;
+} catch (e) { /* ignore */ }
+el('userName').addEventListener('input', () => {
+  try { localStorage.setItem(NAME_KEY, el('userName').value); } catch (e) { /* ignore */ }
+});
+
 // level chip toggles
 document.querySelectorAll('#levelChips .chip').forEach(chip => {
   chip.addEventListener('click', () => {
@@ -705,10 +745,16 @@ function renderFlashcardList(){
     const meaning = getMeaning(w.word);
     const div = document.createElement('div');
     div.className = 'review-item';
-    div.innerHTML = `<span class="rword">${escapeHtml(w.word)} <small style="color:#9ca3af;">(${w.level || '-'})</small></span><span class="rans">${meaning ? escapeHtml(meaning) : '（尚無正解紀錄）'}</span>`;
+    div.innerHTML = `<span class="rword">${escapeHtml(w.word)} <small style="color:#9ca3af;">(${w.level || '-'})</small></span><span class="rans">${meaning ? escapeHtml(meaning) : '（尚無正解紀錄）'}</span><button type="button" class="list-speak-btn" data-word="${escapeHtml(w.word)}" title="播放發音">🔊</button>`;
     list.appendChild(div);
   });
 }
+
+el('flashcardList').addEventListener('click', (e) => {
+  const btn = e.target.closest('.list-speak-btn');
+  if (!btn) return;
+  speakWord(btn.dataset.word);
+});
 
 function setFlashcardView(mode){
   const isList = mode === 'list';
@@ -725,6 +771,17 @@ function setOptionalField(id, value){
   else { node.textContent = ''; node.classList.add('hidden'); }
 }
 
+function speakWord(text){
+  if (!text || !('speechSynthesis' in window)) { showToast('此瀏覽器不支援語音播放'); return; }
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  } catch (e) { /* ignore */ }
+}
+
 function renderFlipCard(){
   const w = flashcardDeck[flipIndex];
   const entry = getEntry(w.word);
@@ -732,8 +789,12 @@ function renderFlipCard(){
   el('flipWord').textContent = w.word;
   el('flipMeaning').textContent = (entry && entry.meaning) || '（尚無正解紀錄）';
   el('flipProgressText').textContent = `第 ${flipIndex + 1} / ${flashcardDeck.length} 張`;
+  speakWord(w.word);
 
+  setOptionalField('flipPhoneticFront', entry && entry.phonetic ? `🔊 ${entry.phonetic}` : '');
   setOptionalField('flipPos', entry && entry.partOfSpeech);
+  setOptionalField('flipPhonetic', entry && entry.phonetic ? `🔊 ${entry.phonetic}` : '');
+  setOptionalField('flipSoundAlike', entry && entry.soundAlike ? `👂 空耳記音：${entry.soundAlike}` : '');
 
   const exampleNode = el('flipExample');
   if (entry && entry.example) {
@@ -755,6 +816,12 @@ el('flipCard').addEventListener('click', () => {
   el('flipCard').classList.toggle('flipped');
 });
 
+el('flipSpeakBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const w = flashcardDeck[flipIndex];
+  if (w) speakWord(w.word);
+});
+
 el('flipPrevBtn').addEventListener('click', () => {
   flipIndex = (flipIndex - 1 + flashcardDeck.length) % flashcardDeck.length;
   renderFlipCard();
@@ -770,6 +837,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === ' ') { e.preventDefault(); el('flipCard').classList.toggle('flipped'); }
   else if (e.key === 'ArrowRight') { el('flipNextBtn').click(); }
   else if (e.key === 'ArrowLeft') { el('flipPrevBtn').click(); }
+  else if (e.key === 's' || e.key === 'S') { el('flipSpeakBtn').click(); }
 });
 
 el('startReviewFromFlashcardBtn').addEventListener('click', () => {
@@ -927,7 +995,7 @@ JSON 中每一題包含 word（英文單字）、level（CEFR 等級）、userAn
 3. 給出每一題的結果（正確 / 錯誤 / 未作答）以及正確答案（中文意思）。
 4. 統計「總題數」「答對題數」「答錯題數」「未作答題數」與「得分（答對題數 / 總題數 × 100，四捨五入到整數）」。
 5. 最後列出所有答錯與未作答的單字，附上正確中文意思，方便複習。
-6. 在你所有說明文字的最後，額外附上一段「機器可讀的評分結果」，放在單獨一個 \`\`\`json 程式碼區塊裡，內容是一個 JSON 陣列，務必包含測驗中的「每一題」（不能省略任何一題）。請針對每一題盡量附上簡短的英文例句、記憶小技巧與詞性/搭配資訊，讓答錯的單字變成閃卡後更容易記住，格式如下：
+6. 在你所有說明文字的最後，額外附上一段「機器可讀的評分結果」，放在單獨一個 \`\`\`json 程式碼區塊裡，內容是一個 JSON 陣列，務必包含測驗中的「每一題」（不能省略任何一題）。請針對每一題盡量附上自然發音音標、空耳發音教學、簡短的英文例句、記憶小技巧與詞性/搭配資訊，讓答錯的單字變成閃卡後更容易記住，格式如下：
 
 \`\`\`json
 [
@@ -936,6 +1004,8 @@ JSON 中每一題包含 word（英文單字）、level（CEFR 等級）、userAn
     "result": "correct 或 wrong 或 unanswered",
     "meaning": "這個單字最恰當的正確中文意思",
     "partOfSpeech": "詞性，例如 n. / v. / adj.（不確定可留空字串）",
+    "phonetic": "這個單字的自然發音音標（KK 或 IPA 皆可），例如 /əˈpruv/",
+    "soundAlike": "用中文諧音（空耳）拆解這個單字的發音，幫助不熟音標的人也能唸出來，例如：apple 唸起來像「愛坡」",
     "example": "一句包含這個單字、簡短好記的英文例句",
     "exampleZh": "上面例句的中文翻譯",
     "mnemonic": "一句幫助記住這個單字的技巧，用諧音、字根拆解或畫面聯想都可以",
@@ -1009,6 +1079,8 @@ function applyGradingResults(items){
     const enriched = {
       meaning: str(item.meaning) || prev.meaning || '',
       partOfSpeech: str(item.partOfSpeech) || prev.partOfSpeech || '',
+      phonetic: str(item.phonetic) || prev.phonetic || '',
+      soundAlike: str(item.soundAlike) || prev.soundAlike || '',
       example: str(item.example) || prev.example || '',
       exampleZh: str(item.exampleZh) || prev.exampleZh || '',
       mnemonic: str(item.mnemonic) || prev.mnemonic || '',
@@ -1112,6 +1184,65 @@ el('restartBtn').addEventListener('click', () => {
   el('resumeBanner').classList.add('hidden');
   showScreen('setupScreen');
   updatePoolInfo();
+});
+
+// ---- Progress backup: export / import everything stored in localStorage ----
+el('exportProgressBtn').addEventListener('click', () => {
+  const data = {
+    app: 'oxford3000_quiz',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    userName: localStorage.getItem(NAME_KEY) || el('userName').value || '',
+    mastery: loadMastery(),
+    quizProgress: loadProgress()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  a.href = url;
+  a.download = `oxford3000_progress_${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('已匯出進度備份');
+});
+
+el('importProgressBtn').addEventListener('click', () => {
+  el('importProgressFile').click();
+});
+
+el('importProgressFile').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || typeof data !== 'object') throw new Error('invalid backup file');
+
+      if (data.mastery && typeof data.mastery === 'object' && typeof data.mastery.words === 'object' && data.mastery.words !== null) {
+        saveMastery(data.mastery);
+      }
+      if (typeof data.userName === 'string' && data.userName) {
+        localStorage.setItem(NAME_KEY, data.userName);
+        el('userName').value = data.userName;
+      }
+      if (data.quizProgress && Array.isArray(data.quizProgress.quizWords) && data.quizProgress.quizWords.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.quizProgress));
+      }
+
+      updatePoolInfo();
+      checkForSavedProgress();
+      showToast('已匯入進度備份');
+    } catch (err) {
+      showToast('匯入失敗：檔案格式不正確');
+    } finally {
+      e.target.value = '';
+    }
+  };
+  reader.readAsText(file);
 });
 </script>
 </body>
