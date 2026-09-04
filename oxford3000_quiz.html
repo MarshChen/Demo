@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oxford 3000 中文測驗</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --text:#1f2430; --muted:#6b7280;
+    --accent:#4f46e5; --accent2:#7c3aed; --border:#e5e7eb; --good:#16a34a; --bad:#dc2626;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif;
+    background:linear-gradient(135deg,#eef1fb,#f9f5ff); color:var(--text); min-height:100vh;
+    display:flex; justify-content:center; padding:32px 16px;
+  }
+  .wrap{width:100%; max-width:760px;}
+  h1{font-size:1.6rem; margin:0 0 4px;}
+  .sub{color:var(--muted); margin:0 0 24px; font-size:.95rem;}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:28px; box-shadow:0 4px 24px rgba(30,20,80,.06); margin-bottom:20px;
+  }
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+  label{font-size:.9rem; color:var(--muted); display:block; margin-bottom:6px;}
+  select, input[type=number], input[type=text]{
+    font-size:1rem; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+    background:#fff; color:var(--text); width:100%;
+  }
+  .field{flex:1; min-width:140px;}
+  .levels{display:flex; gap:10px; flex-wrap:wrap;}
+  .chip{
+    border:1px solid var(--border); border-radius:999px; padding:8px 16px; cursor:pointer;
+    font-size:.9rem; user-select:none; background:#fff; transition:.15s;
+  }
+  .chip.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+  button{
+    font-size:1rem; padding:12px 20px; border-radius:10px; border:none; cursor:pointer;
+    background:var(--accent); color:#fff; font-weight:600; transition:.15s;
+  }
+  button:hover{background:var(--accent2);}
+  button.secondary{background:#fff; color:var(--accent); border:1px solid var(--accent);}
+  button.secondary:hover{background:#f2effe;}
+  button:disabled{opacity:.5; cursor:not-allowed;}
+  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;}
+  .hidden{display:none !important;}
+
+  .progress-bar{height:8px; background:#eee; border-radius:99px; overflow:hidden; margin-bottom:20px;}
+  .progress-fill{height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0%; transition:width .2s;}
+  .progress-text{font-size:.85rem; color:var(--muted); margin-bottom:6px;}
+
+  .word-display{text-align:center; margin:28px 0;}
+  .word{font-size:2.6rem; font-weight:700; letter-spacing:.5px;}
+  .level-badge{
+    display:inline-block; font-size:.75rem; padding:3px 10px; border-radius:999px;
+    background:#ede9fe; color:#5b21b6; margin-top:8px; font-weight:600;
+  }
+  .answer-input{
+    font-size:1.3rem; padding:14px 16px; text-align:center; width:100%;
+    border-radius:12px; border:2px solid var(--border);
+  }
+  .answer-input:focus{outline:none; border-color:var(--accent);}
+  .nav-actions{display:flex; justify-content:space-between; gap:10px; margin-top:20px;}
+  .nav-actions .mid{display:flex; gap:10px; flex:1; justify-content:center;}
+
+  textarea{
+    width:100%; min-height:220px; font-family:ui-monospace,Consolas,monospace; font-size:.85rem;
+    padding:12px; border-radius:10px; border:1px solid var(--border); background:#f9fafb; color:#111;
+    resize:vertical;
+  }
+  .review-list{max-height:340px; overflow-y:auto; border:1px solid var(--border); border-radius:10px;}
+  .review-item{
+    display:flex; justify-content:space-between; gap:10px; padding:10px 14px;
+    border-bottom:1px solid var(--border); font-size:.92rem;
+  }
+  .review-item:last-child{border-bottom:none;}
+  .review-item .rword{font-weight:600;}
+  .review-item .rans{color:var(--muted);}
+  .review-item .rans.empty{color:#d97706; font-style:italic;}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:#111827; color:#fff; padding:10px 18px; border-radius:10px; font-size:.9rem;
+    opacity:0; pointer-events:none; transition:.25s;
+  }
+  .toast.show{opacity:1;}
+  .stat-row{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px;}
+  .stat{background:#f3f4f6; border-radius:10px; padding:10px 16px; font-size:.85rem;}
+  .stat b{font-size:1.1rem; display:block; color:var(--accent);}
+  .prompt-box{
+    background:#111827; color:#e5e7eb; padding:14px; border-radius:10px; font-size:.82rem;
+    white-space:pre-wrap; font-family:ui-monospace,Consolas,monospace; margin-bottom:14px;
+  }
+  kbd{background:#eee; border-radius:4px; padding:1px 6px; font-size:.8rem;}
+
+  /* ---- Answer input with voice + quick clear ---- */
+  .answer-row{display:flex; gap:8px; align-items:stretch;}
+  .answer-row .answer-input{flex:1; min-width:0;}
+  .icon-btn{
+    flex:0 0 auto; width:52px; padding:0; font-size:1.3rem; display:flex; align-items:center;
+    justify-content:center; border-radius:12px; min-height:44px;
+  }
+  .icon-btn.mic-btn{background:#fff; color:var(--accent); border:2px solid var(--border);}
+  .icon-btn.mic-btn.listening{background:var(--bad); border-color:var(--bad); color:#fff; animation:pulse 1s infinite;}
+  .icon-btn.clear-btn{background:#fff; color:var(--muted); border:2px solid var(--border);}
+  .icon-btn.clear-btn:hover{color:var(--bad); border-color:var(--bad);}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.6;}}
+  .quiz-mode-badge{
+    display:inline-block; font-size:.75rem; padding:3px 10px; border-radius:999px;
+    background:#fee2e2; color:#b91c1c; font-weight:600; margin-bottom:10px;
+  }
+
+  /* ---- Dashboard / gamification ---- */
+  .dashboard{margin-bottom:6px;}
+  .dash-total{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .dash-total b{font-size:1.05rem; color:var(--accent);}
+  .level-progress-row{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px;}
+  .mini-level{background:#f3f4f6; border-radius:10px; padding:8px 10px; font-size:.75rem; text-align:center;}
+  .mini-level .lvl-name{font-weight:700; color:var(--text); display:block; margin-bottom:4px;}
+  .mini-level .mini-bar{height:6px; background:#e5e7eb; border-radius:99px; overflow:hidden; margin:4px 0;}
+  .mini-level .mini-fill{height:100%; background:var(--accent);}
+  .mini-level .lvl-count{color:var(--muted);}
+  .badge-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .badge-chip{
+    font-size:.78rem; padding:5px 12px; border-radius:999px; background:#f3f4f6; color:var(--muted);
+    border:1px solid var(--border);
+  }
+  .badge-chip.earned{background:#fef3c7; color:#92400e; border-color:#fbbf24; font-weight:600;}
+  .full-clear-banner{
+    background:linear-gradient(135deg,#fde68a,#fca5a5); border-radius:14px; padding:16px; text-align:center;
+    font-weight:700; color:#7c2d12; margin-bottom:16px;
+  }
+
+  /* ---- Flashcards ---- */
+  .flip-card{perspective:1200px; margin:24px auto; max-width:460px; width:100%; height:340px; cursor:pointer;}
+  .flip-card-inner{
+    position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner{transform:rotateY(180deg);}
+  .flip-card-front, .flip-card-back{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:16px; display:flex;
+    flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    border:2px solid var(--border); background:#fff;
+    padding:20px; text-align:center; box-shadow:0 4px 20px rgba(30,20,80,.08); overflow-y:auto;
+  }
+  .flip-card-back{transform:rotateY(180deg); background:#f5f3ff;}
+  .flip-pos{
+    font-size:.75rem; font-weight:600; color:#fff; background:var(--accent2);
+    padding:3px 12px; border-radius:999px;
+  }
+  .flip-example{font-size:.95rem; color:var(--text); line-height:1.5;}
+  .flip-example .zh{color:var(--muted); display:block; margin-top:2px; font-size:.85rem;}
+  .flip-mnemonic{
+    font-size:.85rem; color:#6d28d9; background:#ede9fe; border-radius:10px; padding:8px 12px;
+    line-height:1.4;
+  }
+  .flip-related{font-size:.8rem; color:var(--muted);}
+  .view-toggle{display:flex; gap:8px;}
+  .view-toggle button.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+
+  /* ---- Confetti ---- */
+  .confetti-piece{
+    position:fixed; top:-20px; width:10px; height:16px; opacity:.9; z-index:9999; pointer-events:none;
+    animation:confetti-fall linear forwards;
+  }
+  @keyframes confetti-fall{
+    to{transform:translateY(110vh) rotate(540deg); opacity:0;}
+  }
+  .full-clear-overlay{
+    position:fixed; inset:0; background:rgba(17,24,39,.75); display:flex; align-items:center; justify-content:center;
+    z-index:9998; padding:20px;
+  }
+  .full-clear-modal{
+    background:#fff; border-radius:20px; padding:32px 24px; text-align:center; max-width:420px; width:100%;
+  }
+  .full-clear-modal h2{font-size:1.8rem; margin:0 0 10px;}
+
+  /* ---- RWD ---- */
+  @media (max-width: 640px){
+    body{padding:16px 10px;}
+    .card{padding:18px;}
+    h1{font-size:1.3rem;}
+    .word{font-size:2rem;}
+    .row{gap:10px;}
+    .field{min-width:100%;}
+    button{padding:12px 16px; min-height:44px;}
+    .nav-actions{flex-wrap:wrap;}
+    .nav-actions .mid{order:3; width:100%;}
+    .nav-actions button{flex:1; min-width:100px;}
+    .review-item{flex-direction:column; align-items:flex-start; gap:4px;}
+    .level-progress-row{grid-template-columns:repeat(2,1fr);}
+    .actions{gap:8px;}
+    .actions button{flex:1; min-width:140px;}
+    .flip-card{height:300px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📘 Oxford 3000 中文測驗</h1>
+  <p class="sub">看英文單字，輸入你認為的中文意思。測驗結束後可產生 JSON，交給 AI 幫你打分數。</p>
+
+  <!-- SETUP SCREEN -->
+  <div class="card" id="setupScreen">
+    <div class="card hidden" id="resumeBanner" style="background:#fef9e7; border-color:#fbbf24; padding:16px; margin-bottom:18px;">
+      <p style="margin:0 0 10px; font-size:.9rem;">偵測到上次有一份未完成的測驗（進度：<span id="resumeProgress"></span>），是否要繼續？</p>
+      <div class="actions" style="margin-top:0;">
+        <button id="resumeBtn">繼續上次測驗</button>
+        <button class="secondary" id="discardResumeBtn">放棄並清除紀錄</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:18px;">
+      <div class="field">
+        <label>單字等級（CEFR）</label>
+        <div class="levels" id="levelChips">
+          <div class="chip active" data-level="A1">A1</div>
+          <div class="chip active" data-level="A2">A2</div>
+          <div class="chip active" data-level="B1">B1</div>
+          <div class="chip active" data-level="B2">B2</div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:18px;">
+      <div class="field">
+        <label>題目數量</label>
+        <select id="questionCount">
+          <option value="10">10 題</option>
+          <option value="20" selected>20 題</option>
+          <option value="50">50 題</option>
+          <option value="100">100 題</option>
+          <option value="all">全部（符合條件的單字）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>出題順序</label>
+        <select id="orderMode">
+          <option value="random" selected>隨機</option>
+          <option value="sequential">依單字表順序</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>你的名字（選填，會寫入結果 JSON）</label>
+        <input type="text" id="userName" placeholder="例如：小明">
+      </div>
+    </div>
+    <p id="poolInfo" class="sub" style="margin-top:14px;"></p>
+
+    <div class="hidden" id="fullClearBanner">
+      <div class="full-clear-banner">👑 恭喜！Oxford 3000 全部單字都已經學會，平台已破關！</div>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+      <div class="dash-total">
+        <span>總學習進度</span>
+        <b id="dashProgressLabel">0 / 0</b>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="dashProgressFill"></div></div>
+      <div class="level-progress-row" id="levelProgressRow"></div>
+      <div class="badge-row" id="badgeRow"></div>
+    </div>
+
+    <div class="row hidden" id="reinforceRow" style="margin:16px 0 4px;">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+        <input type="checkbox" id="includeMasteredChk">
+        包含已學會單字（鞏固複習，答錯會退回待複習）
+      </label>
+    </div>
+
+    <div class="actions" id="practiceActions">
+      <button class="secondary hidden" id="reviewBtn">🔁 複習測驗</button>
+      <button class="secondary hidden" id="flashcardBtn">📇 閃卡複習</button>
+    </div>
+
+    <div class="actions">
+      <button id="startBtn">開始測驗</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="card hidden" id="quizScreen">
+    <div class="quiz-mode-badge hidden" id="quizModeBadge">🔁 複習測驗</div>
+    <div class="progress-text" id="progressText"></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="word-display">
+      <div class="word" id="currentWord">word</div>
+      <div class="level-badge" id="currentLevel">A1</div>
+    </div>
+    <label for="answerInput">請輸入中文意思</label>
+    <div class="answer-row">
+      <input type="text" class="answer-input" id="answerInput" autocomplete="off" placeholder="輸入中文意思，按 Enter 下一題">
+      <button type="button" class="icon-btn mic-btn hidden" id="micBtn" title="語音輸入">🎤</button>
+      <button type="button" class="icon-btn clear-btn" id="clearAnswerBtn" title="清除（Esc）">✕</button>
+    </div>
+    <div class="nav-actions">
+      <button class="secondary" id="prevBtn">← 上一題</button>
+      <div class="mid">
+        <button class="secondary" id="skipBtn">跳過</button>
+      </div>
+      <button id="nextBtn">下一題 →</button>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="finishBtn">提早結束並產生結果</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="card hidden" id="resultScreen">
+    <h2 style="margin-top:0;">✅ 測驗完成</h2>
+    <div class="stat-row">
+      <div class="stat"><b id="statTotal">0</b>總題數</div>
+      <div class="stat"><b id="statAnswered">0</b>已作答</div>
+      <div class="stat"><b id="statSkipped">0</b>跳過</div>
+    </div>
+
+    <p class="sub">以下 Prompt 已幫你寫好，複製 Prompt + JSON 貼給 AI（例如 Claude / ChatGPT），即可自動批改並給出分數與講解。</p>
+    <div class="prompt-box" id="aiPrompt"></div>
+    <div class="actions" style="margin-top:0; margin-bottom:18px;">
+      <button id="copyPromptBtn">複製 Prompt</button>
+    </div>
+
+    <label>結果 JSON</label>
+    <textarea id="resultJson" readonly></textarea>
+    <div class="actions">
+      <button id="copyJsonBtn">複製 JSON</button>
+      <button class="secondary" id="downloadJsonBtn">下載 JSON 檔案</button>
+      <button class="secondary" id="copyAllBtn">複製 Prompt + JSON</button>
+    </div>
+
+    <h3>作答回顧</h3>
+    <div class="review-list" id="reviewList"></div>
+
+    <h3 style="margin-top:24px;">📥 步驟 2：貼上 AI 評分結果</h3>
+    <p class="sub">把 AI 回覆完整貼上（包含它輸出的 ```json 評分陣列），按下方按鈕即可自動更新學會進度、產生 / 更新閃卡。</p>
+    <textarea id="gradingImportInput" placeholder="貼上 AI 的完整回覆..."></textarea>
+    <div class="actions" style="margin-bottom:0;">
+      <button id="importGradingBtn">匯入評分結果</button>
+    </div>
+    <p class="sub hidden" id="importResultMsg" style="margin-top:10px;"></p>
+
+    <div class="actions">
+      <button class="secondary" id="restartBtn">重新開始測驗</button>
+    </div>
+  </div>
+
+  <!-- FLASHCARD SCREEN -->
+  <div class="card hidden" id="flashcardScreen">
+    <div class="row" style="justify-content:space-between; align-items:center;">
+      <h2 style="margin:0;">📇 閃卡複習 <span id="flashcardCount" style="color:var(--muted); font-size:.9rem; font-weight:400;"></span></h2>
+      <div class="view-toggle">
+        <button class="secondary active" id="flashcardListModeBtn">列表</button>
+        <button class="secondary" id="flashcardFlipModeBtn">翻卡</button>
+      </div>
+    </div>
+
+    <div id="flashcardListView" style="margin-top:16px;">
+      <div class="review-list" id="flashcardList"></div>
+    </div>
+
+    <div id="flashcardFlipView" class="hidden" style="margin-top:16px;">
+      <div class="progress-text" id="flipProgressText"></div>
+      <div class="flip-card" id="flipCard">
+        <div class="flip-card-inner">
+          <div class="flip-card-front"><div class="word" id="flipWord">word</div></div>
+          <div class="flip-card-back">
+            <div class="word" id="flipMeaning" style="font-size:1.6rem;">意思</div>
+            <div class="flip-pos hidden" id="flipPos"></div>
+            <div class="flip-example hidden" id="flipExample"></div>
+            <div class="flip-mnemonic hidden" id="flipMnemonic"></div>
+            <div class="flip-related hidden" id="flipRelated"></div>
+          </div>
+        </div>
+      </div>
+      <p class="sub" style="text-align:center;">點卡片或按空白鍵翻面</p>
+      <div class="nav-actions">
+        <button class="secondary" id="flipPrevBtn">← 上一張</button>
+        <button id="flipNextBtn">下一張 →</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="startReviewFromFlashcardBtn">📝 開始複習測驗</button>
+      <button class="secondary" id="backFromFlashcardBtn">← 返回</button>
+    </div>
+  </div>
+
+  <!-- FULL CLEAR CELEBRATION -->
+  <div class="full-clear-overlay hidden" id="fullClearOverlay">
+    <div class="full-clear-modal">
+      <h2>🎉 破關！</h2>
+      <p>Oxford 3000 全部 <b id="fullClearTotal">0</b> 個單字都已經學會了！</p>
+      <button id="closeFullClearBtn">太棒了</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const STORAGE_KEY = 'oxford3000_quiz_progress_v1';
+
+// ---- Oxford 3000 word list (word + CEFR level) ----
+const WORDS =[{"word":"aged","level":"B1"},{"word":"anyway","level":"A2"},{"word":"attend","level":"A2"},{"word":"abandon","level":"B2"},{"word":"agency","level":"B2"},{"word":"anywhere","level":"A2"},{"word":"attention","level":"A2"},{"word":"ability","level":"A2"},{"word":"agenda","level":"B2"},{"word":"apart","level":"B1"},{"word":"attitude","level":"B1"},{"word":"able","level":"A2"},{"word":"agent","level":"B1"},{"word":"apartment","level":"A1"},{"word":"attract","level":"B1"},{"word":"about","level":"A1"},{"word":"aggressive","level":"B2"},{"word":"apologize","level":"B1"},{"word":"attraction","level":"B1"},{"word":"above","level":"A1"},{"word":"ago","level":"A1"},{"word":"app","level":"A2"},{"word":"attractive","level":"A2"},{"word":"abroad","level":"A2"},{"word":"agree","level":"A1"},{"word":"apparent","level":"B2"},{"word":"audience","level":"A2"},{"word":"absolute","level":"B2"},{"word":"agreement","level":"B1"},{"word":"apparently","level":"B2"},{"word":"August","level":"A1"},{"word":"absolutely","level":"B1"},{"word":"ah","level":"A2"},{"word":"appeal","level":"B2"},{"word":"aunt","level":"A1"},{"word":"academic","level":"B1"},{"word":"ahead","level":"B1"},{"word":"appear","level":"A2"},{"word":"author","level":"A2"},{"word":"accept","level":"A2"},{"word":"aid","level":"B2"},{"word":"appearance","level":"A2"},{"word":"authority","level":"B1"},{"word":"acceptable","level":"B2"},{"word":"aim","level":"B1"},{"word":"apple","level":"A1"},{"word":"autumn","level":"A1"},{"word":"access","level":"B1"},{"word":"air","level":"A1"},{"word":"application","level":"B1"},{"word":"available","level":"A2"},{"word":"accident","level":"A2"},{"word":"aircraft","level":"B2"},{"word":"apply","level":"A2"},{"word":"average","level":"A2"},{"word":"accommodation","level":"B1"},{"word":"airline","level":"A2"},{"word":"appointment","level":"B1"},{"word":"avoid","level":"A2"},{"word":"accompany","level":"B2"},{"word":"airport","level":"A1"},{"word":"appreciate","level":"B1"},{"word":"award","level":"A2"},{"word":"according","level":"A2"},{"word":"alarm","level":"B1"},{"word":"approach","level":"B2"},{"word":"aware","level":"B1"},{"word":"account","level":"B1"},{"word":"album","level":"B1"},{"word":"appropriate","level":"B2"},{"word":"away","level":"A1"},{"word":"accurate","level":"B2"},{"word":"alcohol","level":"B1"},{"word":"approval","level":"B2"},{"word":"awful","level":"A2"},{"word":"accuse","level":"B2"},{"word":"alcoholic","level":"B1"},{"word":"approve","level":"B2"},{"word":"baby","level":"A1"},{"word":"achieve","level":"A2"},{"word":"alive","level":"A2"},{"word":"approximately","level":"B1"},{"word":"back","level":"A1"},{"word":"achievement","level":"B1"},{"word":"all","level":"A1"},{"word":"April","level":"A1"},{"word":"background","level":"A2"},{"word":"acknowledge","level":"B2"},{"word":"architect","level":"A2"},{"word":"backwards","level":"B1"},{"word":"acquire","level":"B2"},{"word":"allow","level":"A2"},{"word":"architecture","level":"A2"},{"word":"bacteria","level":"B2"},{"word":"across","level":"A1"},{"word":"almost","level":"A2"},{"word":"area","level":"A1"},{"word":"bad","level":"A1"},{"word":"act","level":"A2"},{"word":"alone","level":"A2"},{"word":"argue","level":"A2"},{"word":"badly","level":"A2"},{"word":"action","level":"A1"},{"word":"along","level":"A2"},{"word":"argument","level":"A2"},{"word":"bag","level":"A1"},{"word":"active","level":"A2"},{"word":"already","level":"A2"},{"word":"arise","level":"B2"},{"word":"bake","level":"B1"},{"word":"activity","level":"A1"},{"word":"also","level":"A1"},{"word":"arm","level":"A1"},{"word":"balance","level":"B1"},{"word":"actor","level":"A1"},{"word":"alter","level":"B2"},{"word":"armed","level":"B2"},{"word":"ball","level":"A1"},{"word":"actress","level":"A1"},{"word":"alternative","level":"A2"},{"word":"arms","level":"B2"},{"word":"ban","level":"B1"},{"word":"actual","level":"B2"},{"word":"although","level":"A2"},{"word":"army","level":"A2"},{"word":"banana","level":"A1"},{"word":"actually","level":"A2"},{"word":"always","level":"A1"},{"word":"around","level":"A1"},{"word":"band","level":"A1"},{"word":"ad","level":"B1"},{"word":"amazed","level":"B1"},{"word":"arrange","level":"A2"},{"word":"bank","level":"A1"},{"word":"adapt","level":"B2"},{"word":"amazing","level":"A1"},{"word":"arrangement","level":"A2"},{"word":"add","level":"A1"},{"word":"ambition","level":"B1"},{"word":"arrest","level":"B1"},{"word":"bar","level":"A2"},{"word":"addition","level":"B1"},{"word":"ambitious","level":"B1"},{"word":"arrival","level":"B1"},{"word":"barrier","level":"B2"},{"word":"additional","level":"B2"},{"word":"among","level":"A2"},{"word":"arrive","level":"A1"},{"word":"base","level":"B1"},{"word":"address","level":"A1"},{"word":"amount","level":"A2"},{"word":"art","level":"A1"},{"word":"baseball","level":"A2"},{"word":"administration","level":"B2"},{"word":"analyse","level":"B1"},{"word":"article","level":"A1"},{"word":"based","level":"A2"},{"word":"admire","level":"B1"},{"word":"analysis","level":"B1"},{"word":"artificial","level":"B2"},{"word":"basic","level":"B1"},{"word":"admit","level":"B1"},{"word":"ancient","level":"A2"},{"word":"artist","level":"A1"},{"word":"basically","level":"B2"},{"word":"adopt","level":"B2"},{"word":"and","level":"A1"},{"word":"artistic","level":"B2"},{"word":"basis","level":"B1"},{"word":"adult","level":"A1"},{"word":"anger","level":"B2"},{"word":"as","level":"A1"},{"word":"basketball","level":"A2"},{"word":"advance","level":"B2"},{"word":"angle","level":"B2"},{"word":"ashamed","level":"B2"},{"word":"bath","level":"A1"},{"word":"advanced","level":"B1"},{"word":"angry","level":"A1"},{"word":"ask","level":"A1"},{"word":"bathroom","level":"A1"},{"word":"advantage","level":"A2"},{"word":"animal","level":"A1"},{"word":"asleep","level":"A2"},{"word":"battery","level":"B1"},{"word":"adventure","level":"A2"},{"word":"ankle","level":"A2"},{"word":"aspect","level":"B2"},{"word":"battle","level":"B1"},{"word":"advertise","level":"A2"},{"word":"anniversary","level":"B2"},{"word":"assess","level":"B2"},{"word":"be","level":"A1"},{"word":"advertisement","level":"A2"},{"word":"announce","level":"B1"},{"word":"assessment","level":"B2"},{"word":"beach","level":"A1"},{"word":"advertising","level":"A2"},{"word":"announcement","level":"B1"},{"word":"assignment","level":"B1"},{"word":"bean","level":"A2"},{"word":"advice","level":"A1"},{"word":"annoy","level":"B1"},{"word":"assist","level":"B1"},{"word":"bear","level":"B2"},{"word":"advise","level":"B1"},{"word":"annoyed","level":"B1"},{"word":"assistant","level":"A2"},{"word":"affair","level":"B2"},{"word":"annoying","level":"B1"},{"word":"associate","level":"B2"},{"word":"beat","level":"A2"},{"word":"affect","level":"A2"},{"word":"annual","level":"B2"},{"word":"associated","level":"B2"},{"word":"beautiful","level":"A1"},{"word":"afford","level":"B1"},{"word":"another","level":"A1"},{"word":"association","level":"B2"},{"word":"beauty","level":"B1"},{"word":"afraid","level":"A1"},{"word":"answer","level":"A1"},{"word":"assume","level":"B2"},{"word":"because","level":"A1"},{"word":"after","level":"A1"},{"word":"anxious","level":"B2"},{"word":"at","level":"A1"},{"word":"become","level":"A1"},{"word":"afternoon","level":"A1"},{"word":"any","level":"A1"},{"word":"athlete","level":"A2"},{"word":"bed","level":"A1"},{"word":"afterwards","level":"B2"},{"word":"anybody","level":"A2"},{"word":"atmosphere","level":"B1"},{"word":"bedroom","level":"A1"},{"word":"again","level":"A1"},{"word":"attach","level":"B1"},{"word":"bee","level":"B1"},{"word":"against","level":"A2"},{"word":"anyone","level":"A1"},{"word":"attack","level":"A2"},{"word":"beef","level":"A2"},{"word":"age","level":"A1"},{"word":"anything","level":"A1"},{"word":"attempt","level":"B2"},{"word":"beer","level":"A1"},{"word":"before","level":"A1"},{"word":"branch","level":"B1"},{"word":"careless","level":"B1"},{"word":"classical","level":"A2"},{"word":"beg","level":"B2"},{"word":"brand","level":"B1"},{"word":"carpet","level":"A2"},{"word":"classroom","level":"A1"},{"word":"begin","level":"A1"},{"word":"brave","level":"B1"},{"word":"carrot","level":"A1"},{"word":"clause","level":"B1"},{"word":"beginning","level":"A1"},{"word":"bread","level":"A1"},{"word":"carry","level":"A1"},{"word":"clean","level":"A1"},{"word":"behave","level":"A2"},{"word":"break","level":"A1"},{"word":"cartoon","level":"A2"},{"word":"clear","level":"A2"},{"word":"behaviour","level":"A2"},{"word":"breakfast","level":"A1"},{"word":"case","level":"A2"},{"word":"clearly","level":"A2"},{"word":"behind","level":"A1"},{"word":"breast","level":"B2"},{"word":"cash","level":"A2"},{"word":"clever","level":"A2"},{"word":"being","level":"B2"},{"word":"breath","level":"B1"},{"word":"cast","level":"B2"},{"word":"click","level":"B1"},{"word":"belief","level":"B1"},{"word":"breathe","level":"B1"},{"word":"castle","level":"A2"},{"word":"client","level":"B1"},{"word":"believe","level":"A1"},{"word":"breathing","level":"B1"},{"word":"cat","level":"A1"},{"word":"climate","level":"A2"},{"word":"bell","level":"B1"},{"word":"bride","level":"B1"},{"word":"catch","level":"A2"},{"word":"climb","level":"A1"},{"word":"belong","level":"A2"},{"word":"bridge","level":"A2"},{"word":"category","level":"B1"},{"word":"clock","level":"A1"},{"word":"below","level":"A1"},{"word":"brief","level":"B2"},{"word":"cause","level":"A2"},{"word":"close","level":"A1"},{"word":"belt","level":"A2"},{"word":"bright","level":"A2"},{"word":"CD","level":"A1"},{"word":"bend","level":"B1"},{"word":"brilliant","level":"A2"},{"word":"ceiling","level":"B1"},{"word":"closed","level":"A2"},{"word":"benefit","level":"A2"},{"word":"bring","level":"A1"},{"word":"celebrate","level":"A2"},{"word":"closely","level":"B2"},{"word":"bent","level":"B2"},{"word":"broad","level":"B2"},{"word":"celebration","level":"B1"},{"word":"cloth","level":"B1"},{"word":"best","level":"A1"},{"word":"broadcast","level":"B2"},{"word":"celebrity","level":"A2"},{"word":"clothes","level":"A1"},{"word":"bet","level":"B2"},{"word":"broken","level":"A2"},{"word":"cell","level":"B2"},{"word":"clothing","level":"A2"},{"word":"better","level":"A1"},{"word":"brother","level":"A1"},{"word":"cent","level":"A1"},{"word":"cloud","level":"A2"},{"word":"between","level":"A1"},{"word":"brown","level":"A1"},{"word":"central","level":"B1"},{"word":"club","level":"A1"},{"word":"beyond","level":"B2"},{"word":"brush","level":"A2"},{"word":"centre","level":"A1"},{"word":"clue","level":"B1"},{"word":"bicycle","level":"A1"},{"word":"bubble","level":"B1"},{"word":"century","level":"A1"},{"word":"coach","level":"A2"},{"word":"big","level":"A1"},{"word":"budget","level":"B2"},{"word":"ceremony","level":"B1"},{"word":"coal","level":"B1"},{"word":"bike","level":"A1"},{"word":"build","level":"A1"},{"word":"certain","level":"A2"},{"word":"coast","level":"A2"},{"word":"bill","level":"A1"},{"word":"building","level":"A1"},{"word":"certainly","level":"A2"},{"word":"coat","level":"A1"},{"word":"billion","level":"A2"},{"word":"bullet","level":"B2"},{"word":"chain","level":"B1"},{"word":"code","level":"A2"},{"word":"bin","level":"A2"},{"word":"bunch","level":"B2"},{"word":"chair","level":"A1"},{"word":"coffee","level":"A1"},{"word":"biology","level":"A2"},{"word":"burn","level":"A2"},{"word":"chairman","level":"B2"},{"word":"coin","level":"B1"},{"word":"bird","level":"A1"},{"word":"bury","level":"B1"},{"word":"challenge","level":"B1"},{"word":"cold","level":"A1"},{"word":"birth","level":"A2"},{"word":"bus","level":"A1"},{"word":"champion","level":"B1"},{"word":"collapse","level":"B2"},{"word":"birthday","level":"A1"},{"word":"bush","level":"B2"},{"word":"chance","level":"A2"},{"word":"colleague","level":"A2"},{"word":"biscuit","level":"A2"},{"word":"business","level":"A1"},{"word":"change","level":"A1"},{"word":"collect","level":"A2"},{"word":"bit","level":"A2"},{"word":"businessman","level":"A2"},{"word":"channel","level":"B1"},{"word":"collection","level":"B1"},{"word":"bite","level":"B1"},{"word":"busy","level":"A1"},{"word":"chapter","level":"B1"},{"word":"college","level":"A1"},{"word":"bitter","level":"B2"},{"word":"but","level":"A1"},{"word":"character","level":"A2"},{"word":"colour","level":"A1"},{"word":"black","level":"A1"},{"word":"butter","level":"A1"},{"word":"characteristic","level":"B2"},{"word":"coloured","level":"B1"},{"word":"blame","level":"B2"},{"word":"button","level":"A2"},{"word":"charge","level":"B1"},{"word":"column","level":"A2"},{"word":"blank","level":"A2"},{"word":"buy","level":"A1"},{"word":"charity","level":"A2"},{"word":"combination","level":"B2"},{"word":"blind","level":"B2"},{"word":"by","level":"A1"},{"word":"chart","level":"A1"},{"word":"combine","level":"B1"},{"word":"block","level":"B1"},{"word":"bye","level":"A1"},{"word":"chat","level":"A2"},{"word":"come","level":"A1"},{"word":"blog","level":"A1"},{"word":"cable","level":"B2"},{"word":"cheap","level":"A1"},{"word":"comedy","level":"A2"},{"word":"blonde","level":"A1"},{"word":"cafe","level":"A1"},{"word":"cheat","level":"B1"},{"word":"comfort","level":"B2"},{"word":"blood","level":"A2"},{"word":"cake","level":"A1"},{"word":"check","level":"A1"},{"word":"comfortable","level":"A2"},{"word":"blow","level":"A2"},{"word":"calculate","level":"B2"},{"word":"cheerful","level":"B1"},{"word":"command","level":"B2"},{"word":"blue","level":"A1"},{"word":"call","level":"A1"},{"word":"cheese","level":"A1"},{"word":"comment","level":"A2"},{"word":"board","level":"A2"},{"word":"calm","level":"B1"},{"word":"chef","level":"A2"},{"word":"commercial","level":"B1"},{"word":"boat","level":"A1"},{"word":"camera","level":"A1"},{"word":"chemical","level":"B1"},{"word":"commission","level":"B2"},{"word":"body","level":"A1"},{"word":"camp","level":"A2"},{"word":"chemistry","level":"A2"},{"word":"commit","level":"B1"},{"word":"boil","level":"A2"},{"word":"campaign","level":"B1"},{"word":"chest","level":"B1"},{"word":"commitment","level":"B2"},{"word":"bomb","level":"B1"},{"word":"camping","level":"A2"},{"word":"chicken","level":"A1"},{"word":"committee","level":"B2"},{"word":"bond","level":"B2"},{"word":"campus","level":"B1"},{"word":"chief","level":"B2"},{"word":"common","level":"A1"},{"word":"bone","level":"A2"},{"word":"can","level":"A1"},{"word":"child","level":"A1"},{"word":"commonly","level":"B2"},{"word":"book","level":"A1"},{"word":"childhood","level":"B1"},{"word":"communicate","level":"A2"},{"word":"boot","level":"A1"},{"word":"cancel","level":"B2"},{"word":"chip","level":"A2"},{"word":"communication","level":"B1"},{"word":"border","level":"B1"},{"word":"cancer","level":"B2"},{"word":"chocolate","level":"A1"},{"word":"community","level":"A2"},{"word":"bored","level":"A1"},{"word":"candidate","level":"B1"},{"word":"choice","level":"A2"},{"word":"company","level":"A1"},{"word":"boring","level":"A1"},{"word":"cannot","level":"A1"},{"word":"choose","level":"A1"},{"word":"compare","level":"A1"},{"word":"born","level":"A1"},{"word":"cap","level":"B1"},{"word":"church","level":"A2"},{"word":"comparison","level":"B1"},{"word":"borrow","level":"A2"},{"word":"capable","level":"B2"},{"word":"cigarette","level":"A2"},{"word":"compete","level":"A2"},{"word":"boss","level":"A2"},{"word":"capacity","level":"B2"},{"word":"cinema","level":"A1"},{"word":"competition","level":"A2"},{"word":"both","level":"A1"},{"word":"capital","level":"A1"},{"word":"circle","level":"A2"},{"word":"competitive","level":"B1"},{"word":"bother","level":"B1"},{"word":"captain","level":"B1"},{"word":"circumstance","level":"B2"},{"word":"competitor","level":"B1"},{"word":"bottle","level":"A1"},{"word":"capture","level":"B2"},{"word":"cite","level":"B2"},{"word":"complain","level":"A2"},{"word":"bottom","level":"A2"},{"word":"car","level":"A1"},{"word":"citizen","level":"B2"},{"word":"complaint","level":"B1"},{"word":"bowl","level":"A2"},{"word":"card","level":"A1"},{"word":"city","level":"A1"},{"word":"complete","level":"A1"},{"word":"box","level":"A1"},{"word":"care","level":"A2"},{"word":"civil","level":"B2"},{"word":"completely","level":"A2"},{"word":"boy","level":"A1"},{"word":"career","level":"A1"},{"word":"claim","level":"B1"},{"word":"complex","level":"B1"},{"word":"boyfriend","level":"A1"},{"word":"careful","level":"A2"},{"word":"class","level":"A1"},{"word":"complicated","level":"B2"},{"word":"brain","level":"A2"},{"word":"carefully","level":"A2"},{"word":"classic","level":"B2"},{"word":"component","level":"B2"},{"word":"computer","level":"A1"},{"word":"council","level":"B2"},{"word":"debate","level":"B2"},{"word":"differently","level":"A2"},{"word":"concentrate","level":"B1"},{"word":"count","level":"A2"},{"word":"debt","level":"B2"},{"word":"difficult","level":"A1"},{"word":"concentration","level":"B2"},{"word":"country","level":"A1"},{"word":"decade","level":"B1"},{"word":"difficulty","level":"B1"},{"word":"concept","level":"B2"},{"word":"countryside","level":"B1"},{"word":"December","level":"A1"},{"word":"dig","level":"B2"},{"word":"concern","level":"B2"},{"word":"county","level":"B2"},{"word":"decent","level":"B2"},{"word":"digital","level":"A2"},{"word":"concerned","level":"B2"},{"word":"couple","level":"A2"},{"word":"decide","level":"A1"},{"word":"dinner","level":"A1"},{"word":"concert","level":"A1"},{"word":"courage","level":"B2"},{"word":"decision","level":"A2"},{"word":"direct","level":"A2"},{"word":"conclude","level":"B1"},{"word":"course","level":"A1"},{"word":"declare","level":"B2"},{"word":"direction","level":"A2"},{"word":"conclusion","level":"B1"},{"word":"court","level":"B1"},{"word":"decline","level":"B2"},{"word":"directly","level":"B1"},{"word":"condition","level":"A2"},{"word":"cousin","level":"A1"},{"word":"decorate","level":"B1"},{"word":"director","level":"A2"},{"word":"conduct","level":"B2"},{"word":"cover","level":"A2"},{"word":"decoration","level":"B2"},{"word":"dirt","level":"B1"},{"word":"conference","level":"A2"},{"word":"covered","level":"B1"},{"word":"decrease","level":"B2"},{"word":"dirty","level":"A1"},{"word":"confidence","level":"B2"},{"word":"cow","level":"A1"},{"word":"deep","level":"A2"},{"word":"disadvantage","level":"B1"},{"word":"confident","level":"B1"},{"word":"crash","level":"B2"},{"word":"deeply","level":"B2"},{"word":"disagree","level":"A2"},{"word":"confirm","level":"B1"},{"word":"crazy","level":"A2"},{"word":"defeat","level":"B2"},{"word":"disappear","level":"A2"},{"word":"conflict","level":"B2"},{"word":"cream","level":"A1"},{"word":"defence","level":"B2"},{"word":"disappointed","level":"B1"},{"word":"confuse","level":"B1"},{"word":"create","level":"A1"},{"word":"defend","level":"B2"},{"word":"disappointing","level":"B1"},{"word":"confused","level":"B1"},{"word":"creation","level":"B2"},{"word":"define","level":"B1"},{"word":"disaster","level":"A2"},{"word":"confusing","level":"B2"},{"word":"creative","level":"A2"},{"word":"definite","level":"B1"},{"word":"disc","level":"B2"},{"word":"connect","level":"A2"},{"word":"creature","level":"B2"},{"word":"definitely","level":"A2"},{"word":"discipline","level":"B2"},{"word":"connected","level":"A2"},{"word":"credit","level":"A2"},{"word":"definition","level":"B1"},{"word":"discount","level":"B1"},{"word":"connection","level":"B1"},{"word":"crew","level":"B2"},{"word":"degree","level":"A2"},{"word":"discover","level":"A2"},{"word":"conscious","level":"B2"},{"word":"crime","level":"A2"},{"word":"delay","level":"B2"},{"word":"discovery","level":"A2"},{"word":"consequence","level":"B1"},{"word":"criminal","level":"A2"},{"word":"deliberate","level":"B2"},{"word":"discuss","level":"A1"},{"word":"conservative","level":"B2"},{"word":"crisis","level":"B2"},{"word":"deliberately","level":"B2"},{"word":"discussion","level":"A2"},{"word":"consider","level":"A2"},{"word":"criterion","level":"B2"},{"word":"delicious","level":"A1"},{"word":"disease","level":"A2"},{"word":"consideration","level":"B2"},{"word":"critic","level":"B2"},{"word":"delight","level":"B2"},{"word":"dish","level":"A1"},{"word":"consist","level":"B1"},{"word":"critical","level":"B2"},{"word":"delighted","level":"B2"},{"word":"dishonest","level":"B2"},{"word":"consistent","level":"B2"},{"word":"criticism","level":"B2"},{"word":"deliver","level":"B1"},{"word":"dislike","level":"B1"},{"word":"constant","level":"B2"},{"word":"criticize","level":"B2"},{"word":"delivery","level":"B2"},{"word":"dismiss","level":"B2"},{"word":"constantly","level":"B2"},{"word":"crop","level":"B2"},{"word":"demand","level":"B2"},{"word":"display","level":"B2"},{"word":"construct","level":"B2"},{"word":"cross","level":"A2"},{"word":"demonstrate","level":"B2"},{"word":"distance","level":"A2"},{"word":"construction","level":"B2"},{"word":"crowd","level":"A2"},{"word":"dentist","level":"A2"},{"word":"distribute","level":"B2"},{"word":"consume","level":"B1"},{"word":"crowded","level":"A2"},{"word":"deny","level":"B2"},{"word":"distribution","level":"B2"},{"word":"consumer","level":"B1"},{"word":"crucial","level":"B2"},{"word":"department","level":"A2"},{"word":"district","level":"B2"},{"word":"contact","level":"B1"},{"word":"cruel","level":"B1"},{"word":"departure","level":"B1"},{"word":"divide","level":"B1"},{"word":"contain","level":"A2"},{"word":"cry","level":"A2"},{"word":"depend","level":"A2"},{"word":"division","level":"B2"},{"word":"container","level":"B1"},{"word":"cultural","level":"B1"},{"word":"depressed","level":"B2"},{"word":"divorced","level":"A2"},{"word":"contemporary","level":"B2"},{"word":"culture","level":"A1"},{"word":"depressing","level":"B2"},{"word":"do","level":"A1"},{"word":"content","level":"B1"},{"word":"cup","level":"A1"},{"word":"depth","level":"B2"},{"word":"doctor","level":"A1"},{"word":"contest","level":"B2"},{"word":"cupboard","level":"A2"},{"word":"describe","level":"A1"},{"word":"document","level":"A2"},{"word":"context","level":"A2"},{"word":"cure","level":"B2"},{"word":"description","level":"A1"},{"word":"documentary","level":"B1"},{"word":"continent","level":"A2"},{"word":"curly","level":"A2"},{"word":"desert","level":"A2"},{"word":"dog","level":"A1"},{"word":"continue","level":"A2"},{"word":"currency","level":"B1"},{"word":"deserve","level":"B2"},{"word":"dollar","level":"A1"},{"word":"continuous","level":"B1"},{"word":"current","level":"B1"},{"word":"design","level":"A1"},{"word":"domestic","level":"B2"},{"word":"contract","level":"B2"},{"word":"currently","level":"B1"},{"word":"designer","level":"A2"},{"word":"dominate","level":"B2"},{"word":"contrast","level":"B1"},{"word":"curtain","level":"B1"},{"word":"desire","level":"B2"},{"word":"donate","level":"B1"},{"word":"contribute","level":"B2"},{"word":"curve","level":"B2"},{"word":"desk","level":"A1"},{"word":"door","level":"A1"},{"word":"contribution","level":"B2"},{"word":"curved","level":"B2"},{"word":"desperate","level":"B2"},{"word":"double","level":"A2"},{"word":"control","level":"A2"},{"word":"custom","level":"B1"},{"word":"despite","level":"B1"},{"word":"convenient","level":"B1"},{"word":"customer","level":"A1"},{"word":"destination","level":"B1"},{"word":"conversation","level":"A1"},{"word":"cut","level":"A1"},{"word":"destroy","level":"A2"},{"word":"doubt","level":"B1"},{"word":"convert","level":"B2"},{"word":"cycle","level":"A2"},{"word":"detail","level":"A1"},{"word":"down","level":"A1"},{"word":"convince","level":"B1"},{"word":"dad","level":"A1"},{"word":"detailed","level":"B2"},{"word":"download","level":"A2"},{"word":"convinced","level":"B2"},{"word":"daily","level":"A2"},{"word":"detect","level":"B2"},{"word":"downstairs","level":"A1"},{"word":"cook","level":"A1"},{"word":"damage","level":"B1"},{"word":"detective","level":"A2"},{"word":"downwards","level":"B2"},{"word":"cooker","level":"A2"},{"word":"dance","level":"A1"},{"word":"determine","level":"B1"},{"word":"dozen","level":"B2"},{"word":"cooking","level":"A1"},{"word":"dancer","level":"A1"},{"word":"determined","level":"B1"},{"word":"draft","level":"B2"},{"word":"cool","level":"A1"},{"word":"dancing","level":"A1"},{"word":"develop","level":"A2"},{"word":"drag","level":"B2"},{"word":"copy","level":"A2"},{"word":"danger","level":"A2"},{"word":"development","level":"B1"},{"word":"drama","level":"A2"},{"word":"core","level":"B2"},{"word":"dangerous","level":"A1"},{"word":"device","level":"A2"},{"word":"dramatic","level":"B2"},{"word":"corner","level":"A2"},{"word":"dark","level":"A1"},{"word":"diagram","level":"B1"},{"word":"draw","level":"A1"},{"word":"corporate","level":"B2"},{"word":"data","level":"A2"},{"word":"dialogue","level":"A1"},{"word":"drawing","level":"A2"},{"word":"correct","level":"A1"},{"word":"date","level":"A1"},{"word":"diamond","level":"B1"},{"word":"dream","level":"A2"},{"word":"correctly","level":"A2"},{"word":"daughter","level":"A1"},{"word":"diary","level":"A2"},{"word":"dress","level":"A1"},{"word":"cost","level":"A1"},{"word":"day","level":"A1"},{"word":"dictionary","level":"A1"},{"word":"dressed","level":"B1"},{"word":"costume","level":"B1"},{"word":"dead","level":"A2"},{"word":"die","level":"A1"},{"word":"drink","level":"A1"},{"word":"cottage","level":"B1"},{"word":"deal","level":"A2"},{"word":"diet","level":"A1"},{"word":"drive","level":"A1"},{"word":"cotton","level":"B1"},{"word":"dear","level":"A1"},{"word":"difference","level":"A1"},{"word":"driver","level":"A1"},{"word":"could","level":"A1"},{"word":"death","level":"A2"},{"word":"different","level":"A1"},{"word":"driving","level":"A2"},{"word":"drop","level":"A2"},{"word":"drug","level":"A2"},{"word":"ending","level":"A2"},{"word":"existence","level":"B2"},{"word":"feeling","level":"A1"},{"word":"drum","level":"B1"},{"word":"enemy","level":"B1"},{"word":"expand","level":"B1"},{"word":"fellow","level":"B2"},{"word":"drunk","level":"B1"},{"word":"energy","level":"A2"},{"word":"expect","level":"A2"},{"word":"female","level":"A2"},{"word":"dry","level":"A2"},{"word":"engage","level":"B2"},{"word":"expectation","level":"B2"},{"word":"fence","level":"B1"},{"word":"due","level":"B1"},{"word":"engaged","level":"B1"},{"word":"expected","level":"B1"},{"word":"festival","level":"A1"},{"word":"during","level":"A1"},{"word":"engine","level":"A2"},{"word":"expedition","level":"B1"},{"word":"few","level":"A1"},{"word":"dust","level":"B1"},{"word":"engineer","level":"A2"},{"word":"expense","level":"B2"},{"word":"fiction","level":"A2"},{"word":"duty","level":"B1"},{"word":"engineering","level":"B1"},{"word":"expensive","level":"A1"},{"word":"field","level":"A2"},{"word":"DVD","level":"A1"},{"word":"enhance","level":"B2"},{"word":"experience","level":"A2"},{"word":"fifteen","level":"A1"},{"word":"each","level":"A1"},{"word":"enjoy","level":"A1"},{"word":"experienced","level":"B1"},{"word":"fifth","level":"A1"},{"word":"ear","level":"A1"},{"word":"enormous","level":"A2"},{"word":"experiment","level":"A2"},{"word":"fifty","level":"A1"},{"word":"early","level":"A1"},{"word":"enough","level":"A1"},{"word":"expert","level":"A2"},{"word":"fight","level":"A2"},{"word":"earn","level":"A2"},{"word":"enquiry","level":"B2"},{"word":"explain","level":"A1"},{"word":"fighting","level":"B1"},{"word":"earth","level":"A2"},{"word":"ensure","level":"B2"},{"word":"explanation","level":"A2"},{"word":"figure","level":"A2"},{"word":"earthquake","level":"B1"},{"word":"enter","level":"A2"},{"word":"explode","level":"B1"},{"word":"file","level":"B1"},{"word":"easily","level":"A2"},{"word":"entertain","level":"B1"},{"word":"exploration","level":"B2"},{"word":"fill","level":"A1"},{"word":"east","level":"A1"},{"word":"entertainment","level":"B1"},{"word":"explore","level":"B1"},{"word":"film","level":"A1"},{"word":"eastern","level":"B1"},{"word":"enthusiasm","level":"B2"},{"word":"explosion","level":"B1"},{"word":"final","level":"A1"},{"word":"easy","level":"A1"},{"word":"enthusiastic","level":"B2"},{"word":"export","level":"B1"},{"word":"finally","level":"A2"},{"word":"eat","level":"A1"},{"word":"entire","level":"B2"},{"word":"expose","level":"B2"},{"word":"finance","level":"B2"},{"word":"economic","level":"B1"},{"word":"entirely","level":"B2"},{"word":"express","level":"A2"},{"word":"financial","level":"B1"},{"word":"economy","level":"B1"},{"word":"entrance","level":"B1"},{"word":"expression","level":"A2"},{"word":"find","level":"A1"},{"word":"edge","level":"B1"},{"word":"entry","level":"B1"},{"word":"extend","level":"B2"},{"word":"finding","level":"B2"},{"word":"edit","level":"B2"},{"word":"environment","level":"A2"},{"word":"extent","level":"B2"},{"word":"fine","level":"A1"},{"word":"edition","level":"B2"},{"word":"environmental","level":"B1"},{"word":"external","level":"B2"},{"word":"finger","level":"A2"},{"word":"editor","level":"B1"},{"word":"episode","level":"B1"},{"word":"extra","level":"A1"},{"word":"finish","level":"A1"},{"word":"educate","level":"B1"},{"word":"equal","level":"B1"},{"word":"extraordinary","level":"B2"},{"word":"fire","level":"A1"},{"word":"educated","level":"B1"},{"word":"equally","level":"B1"},{"word":"extreme","level":"A2"},{"word":"firm","level":"B2"},{"word":"education","level":"A2"},{"word":"equipment","level":"A2"},{"word":"extremely","level":"A2"},{"word":"first","level":"A1"},{"word":"educational","level":"B1"},{"word":"error","level":"A2"},{"word":"eye","level":"A1"},{"word":"firstly","level":"A2"},{"word":"effect","level":"A2"},{"word":"escape","level":"B1"},{"word":"face","level":"A1"},{"word":"fish","level":"A1"},{"word":"effective","level":"B1"},{"word":"especially","level":"A2"},{"word":"facility","level":"B2"},{"word":"fishing","level":"A2"},{"word":"effectively","level":"B1"},{"word":"essay","level":"A2"},{"word":"fact","level":"A1"},{"word":"fit","level":"A2"},{"word":"efficient","level":"B2"},{"word":"essential","level":"B1"},{"word":"factor","level":"A2"},{"word":"fitness","level":"B1"},{"word":"effort","level":"B1"},{"word":"establish","level":"B2"},{"word":"factory","level":"A2"},{"word":"five","level":"A1"},{"word":"egg","level":"A1"},{"word":"estate","level":"B2"},{"word":"fail","level":"A2"},{"word":"fix","level":"A2"},{"word":"eight","level":"A1"},{"word":"estimate","level":"B2"},{"word":"failure","level":"B2"},{"word":"fixed","level":"B1"},{"word":"eighteen","level":"A1"},{"word":"ethical","level":"B2"},{"word":"fair","level":"A2"},{"word":"flag","level":"B1"},{"word":"eighty","level":"A1"},{"word":"euro","level":"A1"},{"word":"fairly","level":"B1"},{"word":"flame","level":"B2"},{"word":"either","level":"A2"},{"word":"evaluate","level":"B2"},{"word":"faith","level":"B2"},{"word":"flash","level":"B2"},{"word":"elderly","level":"B2"},{"word":"even","level":"A1"},{"word":"fall","level":"A1"},{"word":"flat","level":"A1"},{"word":"elect","level":"B2"},{"word":"evening","level":"A1"},{"word":"false","level":"A1"},{"word":"flexible","level":"B2"},{"word":"election","level":"B1"},{"word":"event","level":"A1"},{"word":"familiar","level":"B1"},{"word":"flight","level":"A1"},{"word":"electric","level":"A2"},{"word":"eventually","level":"B1"},{"word":"family","level":"A1"},{"word":"float","level":"B2"},{"word":"electrical","level":"A2"},{"word":"ever","level":"A1"},{"word":"famous","level":"A1"},{"word":"flood","level":"B1"},{"word":"electricity","level":"A2"},{"word":"every","level":"A1"},{"word":"fan","level":"A2"},{"word":"floor","level":"A1"},{"word":"electronic","level":"A2"},{"word":"everybody","level":"A1"},{"word":"fancy","level":"B1"},{"word":"flour","level":"B1"},{"word":"element","level":"B1"},{"word":"everyday","level":"A2"},{"word":"fantastic","level":"A1"},{"word":"flow","level":"B1"},{"word":"elephant","level":"A1"},{"word":"everyone","level":"A1"},{"word":"far","level":"A1"},{"word":"flower","level":"A1"},{"word":"eleven","level":"A1"},{"word":"everything","level":"A1"},{"word":"farm","level":"A1"},{"word":"flu","level":"A2"},{"word":"else","level":"A1"},{"word":"everywhere","level":"A2"},{"word":"farmer","level":"A1"},{"word":"fly","level":"A1"},{"word":"elsewhere","level":"B2"},{"word":"evidence","level":"A2"},{"word":"farming","level":"A2"},{"word":"flying","level":"A2"},{"word":"email","level":"A1"},{"word":"evil","level":"B2"},{"word":"fascinating","level":"B1"},{"word":"focus","level":"A2"},{"word":"embarrassed","level":"B1"},{"word":"exact","level":"A2"},{"word":"fashion","level":"A2"},{"word":"fold","level":"B1"},{"word":"embarrassing","level":"B1"},{"word":"exactly","level":"A2"},{"word":"fashionable","level":"B1"},{"word":"folding","level":"B2"},{"word":"emerge","level":"B2"},{"word":"exam","level":"A1"},{"word":"fast","level":"A1"},{"word":"folk","level":"B1"},{"word":"emergency","level":"B1"},{"word":"examination","level":"B2"},{"word":"fasten","level":"B1"},{"word":"follow","level":"A1"},{"word":"emotion","level":"B1"},{"word":"examine","level":"B1"},{"word":"fat","level":"A1"},{"word":"following","level":"A2"},{"word":"emotional","level":"B2"},{"word":"example","level":"A1"},{"word":"father","level":"A1"},{"word":"food","level":"A1"},{"word":"emphasis","level":"B2"},{"word":"excellent","level":"A2"},{"word":"fault","level":"B2"},{"word":"foot","level":"A1"},{"word":"emphasize","level":"B2"},{"word":"except","level":"A2"},{"word":"favour","level":"B1"},{"word":"football","level":"A1"},{"word":"employ","level":"A2"},{"word":"exchange","level":"B1"},{"word":"favourite","level":"A1"},{"word":"for","level":"A1"},{"word":"employee","level":"A2"},{"word":"excited","level":"A1"},{"word":"fear","level":"A2"},{"word":"force","level":"B1"},{"word":"employer","level":"A2"},{"word":"excitement","level":"B1"},{"word":"feather","level":"B2"},{"word":"foreign","level":"A2"},{"word":"employment","level":"B1"},{"word":"exciting","level":"A1"},{"word":"feature","level":"A2"},{"word":"forest","level":"A2"},{"word":"empty","level":"A2"},{"word":"excuse","level":"B2"},{"word":"February","level":"A1"},{"word":"forever","level":"B1"},{"word":"enable","level":"B2"},{"word":"executive","level":"B2"},{"word":"fee","level":"B2"},{"word":"forget","level":"A1"},{"word":"encounter","level":"B2"},{"word":"exercise","level":"A1"},{"word":"feed","level":"A2"},{"word":"forgive","level":"B2"},{"word":"encourage","level":"B1"},{"word":"exhibition","level":"B1"},{"word":"feedback","level":"B2"},{"word":"fork","level":"A2"},{"word":"end","level":"A1"},{"word":"exist","level":"A2"},{"word":"feel","level":"A1"},{"word":"form","level":"A1"},{"word":"formal","level":"A2"},{"word":"give","level":"A1"},{"word":"hear","level":"A1"},{"word":"hurry","level":"B1"},{"word":"former","level":"B2"},{"word":"glad","level":"B1"},{"word":"hearing","level":"B2"},{"word":"hurt","level":"A2"},{"word":"fortunately","level":"A2"},{"word":"glass","level":"A1"},{"word":"heart","level":"A2"},{"word":"husband","level":"A1"},{"word":"fortune","level":"B2"},{"word":"global","level":"B1"},{"word":"heat","level":"A2"},{"word":"I","level":"A1"},{"word":"forty","level":"A1"},{"word":"glove","level":"B1"},{"word":"heating","level":"B1"},{"word":"ice","level":"A1"},{"word":"forward","level":"A2"},{"word":"go","level":"A1"},{"word":"heaven","level":"B2"},{"word":"found","level":"B2"},{"word":"goal","level":"A2"},{"word":"heavily","level":"B1"},{"word":"idea","level":"A1"},{"word":"four","level":"A1"},{"word":"god","level":"A2"},{"word":"heavy","level":"A2"},{"word":"ideal","level":"A2"},{"word":"fourteen","level":"A1"},{"word":"gold","level":"A2"},{"word":"heel","level":"B2"},{"word":"identify","level":"A2"},{"word":"fourth","level":"A1"},{"word":"golf","level":"A2"},{"word":"height","level":"A2"},{"word":"identity","level":"B1"},{"word":"frame","level":"B1"},{"word":"good","level":"A1"},{"word":"helicopter","level":"B1"},{"word":"if","level":"A1"},{"word":"free","level":"A1"},{"word":"goodbye","level":"A1"},{"word":"hell","level":"B2"},{"word":"ignore","level":"B1"},{"word":"freedom","level":"B2"},{"word":"goods","level":"B1"},{"word":"hello","level":"A1"},{"word":"ill","level":"A2"},{"word":"freeze","level":"B1"},{"word":"govern","level":"B2"},{"word":"help","level":"A1"},{"word":"illegal","level":"B1"},{"word":"frequency","level":"B2"},{"word":"government","level":"A2"},{"word":"helpful","level":"A2"},{"word":"illness","level":"A2"},{"word":"frequently","level":"B1"},{"word":"grab","level":"B2"},{"word":"her","level":"A1"},{"word":"illustrate","level":"B2"},{"word":"fresh","level":"A2"},{"word":"grade","level":"B1"},{"word":"here","level":"A1"},{"word":"illustration","level":"B2"},{"word":"Friday","level":"A1"},{"word":"gradually","level":"B2"},{"word":"hero","level":"A2"},{"word":"image","level":"A2"},{"word":"fridge","level":"A2"},{"word":"graduate","level":"B1"},{"word":"hers","level":"A2"},{"word":"imaginary","level":"B1"},{"word":"friend","level":"A1"},{"word":"grain","level":"B1"},{"word":"herself","level":"A2"},{"word":"imagination","level":"B2"},{"word":"friendly","level":"A1"},{"word":"grand","level":"B2"},{"word":"hesitate","level":"B2"},{"word":"imagine","level":"A1"},{"word":"friendship","level":"B1"},{"word":"grandfather","level":"A1"},{"word":"hey","level":"A1"},{"word":"immediate","level":"B1"},{"word":"frighten","level":"B1"},{"word":"grandmother","level":"A1"},{"word":"hi","level":"A1"},{"word":"immediately","level":"A2"},{"word":"frightened","level":"B1"},{"word":"grandparent","level":"A1"},{"word":"hide","level":"A2"},{"word":"immigrant","level":"B1"},{"word":"frightening","level":"B1"},{"word":"grant","level":"B2"},{"word":"high","level":"A1"},{"word":"impact","level":"B1"},{"word":"frog","level":"A2"},{"word":"grass","level":"A2"},{"word":"highlight","level":"B1"},{"word":"impatient","level":"B2"},{"word":"from","level":"A1"},{"word":"grateful","level":"B1"},{"word":"highly","level":"B1"},{"word":"imply","level":"B2"},{"word":"front","level":"A1"},{"word":"great","level":"A1"},{"word":"hill","level":"A2"},{"word":"import","level":"B1"},{"word":"frozen","level":"B1"},{"word":"green","level":"A1"},{"word":"him","level":"A1"},{"word":"importance","level":"B1"},{"word":"fruit","level":"A1"},{"word":"greet","level":"A2"},{"word":"himself","level":"A2"},{"word":"important","level":"A1"},{"word":"fry","level":"B1"},{"word":"grey","level":"A1"},{"word":"hire","level":"B1"},{"word":"impose","level":"B2"},{"word":"fuel","level":"B1"},{"word":"ground","level":"A2"},{"word":"his","level":"A1"},{"word":"impossible","level":"A2"},{"word":"full","level":"A1"},{"word":"group","level":"A1"},{"word":"historic","level":"B1"},{"word":"impress","level":"B2"},{"word":"fully","level":"B2"},{"word":"grow","level":"A1"},{"word":"historical","level":"B1"},{"word":"impressed","level":"B2"},{"word":"fun","level":"A1"},{"word":"growth","level":"B1"},{"word":"history","level":"A1"},{"word":"impression","level":"B1"},{"word":"function","level":"B1"},{"word":"guarantee","level":"B2"},{"word":"hit","level":"A2"},{"word":"impressive","level":"B1"},{"word":"fund","level":"B2"},{"word":"guard","level":"B1"},{"word":"hobby","level":"A1"},{"word":"improve","level":"A1"},{"word":"fundamental","level":"B2"},{"word":"guess","level":"A1"},{"word":"hockey","level":"A2"},{"word":"improvement","level":"B1"},{"word":"funding","level":"B2"},{"word":"guest","level":"A2"},{"word":"hold","level":"A2"},{"word":"in","level":"A1"},{"word":"funny","level":"A1"},{"word":"guide","level":"A2"},{"word":"hole","level":"A2"},{"word":"inch","level":"B2"},{"word":"fur","level":"B1"},{"word":"guilty","level":"B1"},{"word":"holiday","level":"A1"},{"word":"incident","level":"B2"},{"word":"furniture","level":"A2"},{"word":"guitar","level":"A1"},{"word":"hollow","level":"B2"},{"word":"include","level":"A1"},{"word":"further","level":"A2"},{"word":"gun","level":"A2"},{"word":"holy","level":"B2"},{"word":"included","level":"A2"},{"word":"furthermore","level":"B2"},{"word":"guy","level":"A2"},{"word":"home","level":"A1"},{"word":"including","level":"A2"},{"word":"future","level":"A1"},{"word":"gym","level":"A1"},{"word":"homework","level":"A1"},{"word":"income","level":"B2"},{"word":"gain","level":"B2"},{"word":"habit","level":"A2"},{"word":"honest","level":"B1"},{"word":"increase","level":"A2"},{"word":"gallery","level":"A2"},{"word":"hair","level":"A1"},{"word":"honour","level":"B2"},{"word":"increasingly","level":"B2"},{"word":"game","level":"A1"},{"word":"half","level":"A1"},{"word":"hope","level":"A1"},{"word":"incredible","level":"A2"},{"word":"gang","level":"B2"},{"word":"hall","level":"A2"},{"word":"horrible","level":"B1"},{"word":"incredibly","level":"B1"},{"word":"gap","level":"A2"},{"word":"hand","level":"A1"},{"word":"horror","level":"B1"},{"word":"indeed","level":"B1"},{"word":"garage","level":"B1"},{"word":"handle","level":"B2"},{"word":"horse","level":"A1"},{"word":"independent","level":"A2"},{"word":"garden","level":"A1"},{"word":"hang","level":"B1"},{"word":"hospital","level":"A1"},{"word":"indicate","level":"B1"},{"word":"gas","level":"A2"},{"word":"happen","level":"A1"},{"word":"host","level":"B1"},{"word":"indirect","level":"B1"},{"word":"gate","level":"A2"},{"word":"happily","level":"A2"},{"word":"hot","level":"A1"},{"word":"individual","level":"A2"},{"word":"gather","level":"B1"},{"word":"happiness","level":"B1"},{"word":"hotel","level":"A1"},{"word":"indoor","level":"B1"},{"word":"general","level":"A2"},{"word":"happy","level":"A1"},{"word":"hour","level":"A1"},{"word":"indoors","level":"B1"},{"word":"generally","level":"B1"},{"word":"hard","level":"A1"},{"word":"house","level":"A1"},{"word":"industrial","level":"B2"},{"word":"generate","level":"B2"},{"word":"hardly","level":"B1"},{"word":"household","level":"B2"},{"word":"industry","level":"A2"},{"word":"generation","level":"B1"},{"word":"harm","level":"B2"},{"word":"housing","level":"B2"},{"word":"infection","level":"B2"},{"word":"generous","level":"B1"},{"word":"harmful","level":"B2"},{"word":"how","level":"A1"},{"word":"influence","level":"B1"},{"word":"genre","level":"B2"},{"word":"hat","level":"A1"},{"word":"however","level":"A1"},{"word":"inform","level":"B2"},{"word":"gentle","level":"B1"},{"word":"hate","level":"A1"},{"word":"huge","level":"A2"},{"word":"informal","level":"A2"},{"word":"gentleman","level":"B1"},{"word":"have","level":"A1"},{"word":"human","level":"A2"},{"word":"information","level":"A1"},{"word":"geography","level":"A1"},{"word":"humorous","level":"B2"},{"word":"ingredient","level":"B1"},{"word":"get","level":"A1"},{"word":"he","level":"A1"},{"word":"humour","level":"B2"},{"word":"initial","level":"B2"},{"word":"ghost","level":"B1"},{"word":"head","level":"A1"},{"word":"hundred","level":"A1"},{"word":"initially","level":"B2"},{"word":"giant","level":"B1"},{"word":"headache","level":"A2"},{"word":"hungry","level":"A1"},{"word":"initiative","level":"B2"},{"word":"gift","level":"A2"},{"word":"headline","level":"B1"},{"word":"hunt","level":"B1"},{"word":"injure","level":"B1"},{"word":"girl","level":"A1"},{"word":"health","level":"A1"},{"word":"hunting","level":"B2"},{"word":"injured","level":"B1"},{"word":"girlfriend","level":"A1"},{"word":"healthy","level":"A1"},{"word":"hurricane","level":"B1"},{"word":"injury","level":"A2"},{"word":"inner","level":"B2"},{"word":"June","level":"A1"},{"word":"length","level":"B1"},{"word":"mail","level":"A2"},{"word":"innocent","level":"B1"},{"word":"junior","level":"B2"},{"word":"less","level":"A2"},{"word":"main","level":"A1"},{"word":"insect","level":"A2"},{"word":"just","level":"A1"},{"word":"lesson","level":"A1"},{"word":"mainly","level":"B1"},{"word":"inside","level":"A2"},{"word":"justice","level":"B2"},{"word":"let","level":"A1"},{"word":"maintain","level":"B2"},{"word":"insight","level":"B2"},{"word":"justify","level":"B2"},{"word":"letter","level":"A1"},{"word":"major","level":"A2"},{"word":"insist","level":"B2"},{"word":"keen","level":"B1"},{"word":"level","level":"A2"},{"word":"majority","level":"B2"},{"word":"inspire","level":"B2"},{"word":"keep","level":"A1"},{"word":"library","level":"A1"},{"word":"make","level":"A1"},{"word":"install","level":"B2"},{"word":"key","level":"A1"},{"word":"licence","level":"B2"},{"word":"male","level":"A2"},{"word":"instance","level":"B2"},{"word":"keyboard","level":"B1"},{"word":"lie","level":"A1"},{"word":"mall","level":"B1"},{"word":"instead","level":"A2"},{"word":"kick","level":"B1"},{"word":"man","level":"A1"},{"word":"institute","level":"B2"},{"word":"kid","level":"A2"},{"word":"life","level":"A1"},{"word":"manage","level":"A2"},{"word":"institution","level":"B2"},{"word":"kill","level":"A2"},{"word":"lifestyle","level":"A2"},{"word":"management","level":"B1"},{"word":"instruction","level":"A2"},{"word":"killing","level":"B1"},{"word":"lift","level":"A2"},{"word":"manager","level":"A2"},{"word":"instructor","level":"A2"},{"word":"kilometre","level":"A1"},{"word":"light","level":""},{"word":"manner","level":"A2"},{"word":"instrument","level":"A2"},{"word":"kind","level":"A1"},{"word":"many","level":"A1"},{"word":"insurance","level":"B2"},{"word":"map","level":"A1"},{"word":"intelligence","level":"B1"},{"word":"king","level":"A2"},{"word":"March","level":"A1"},{"word":"intelligent","level":"A2"},{"word":"kiss","level":"B1"},{"word":"like","level":"A1"},{"word":"mark","level":"A2"},{"word":"intend","level":"B1"},{"word":"kitchen","level":"A1"},{"word":"market","level":"A1"},{"word":"intended","level":"B2"},{"word":"knee","level":"A2"},{"word":"marketing","level":"B1"},{"word":"intense","level":"B2"},{"word":"knife","level":"A2"},{"word":"marriage","level":"B1"},{"word":"intention","level":"B1"},{"word":"knock","level":"A2"},{"word":"likely","level":"A2"},{"word":"married","level":"A1"},{"word":"interest","level":"A1"},{"word":"know","level":"A1"},{"word":"limit","level":"B1"},{"word":"marry","level":"A2"},{"word":"interested","level":"A1"},{"word":"knowledge","level":"A2"},{"word":"limited","level":"B2"},{"word":"mass","level":"B2"},{"word":"interesting","level":"A1"},{"word":"lab","level":"A2"},{"word":"line","level":"A1"},{"word":"massive","level":"B2"},{"word":"internal","level":"B2"},{"word":"label","level":"B1"},{"word":"link","level":"A2"},{"word":"master","level":"B2"},{"word":"international","level":"A2"},{"word":"laboratory","level":"B1"},{"word":"lion","level":"A1"},{"word":"match","level":""},{"word":"internet","level":"A1"},{"word":"labour","level":"B2"},{"word":"lip","level":"B1"},{"word":"interpret","level":"B2"},{"word":"lack","level":"B1"},{"word":"liquid","level":"B1"},{"word":"interrupt","level":"B2"},{"word":"lady","level":"A2"},{"word":"list","level":"A1"},{"word":"matching","level":"B2"},{"word":"interview","level":"A1"},{"word":"lake","level":"A2"},{"word":"listen","level":"A1"},{"word":"material","level":"A2"},{"word":"into","level":"A1"},{"word":"lamp","level":"A2"},{"word":"listener","level":"A2"},{"word":"mathematics","level":"A2"},{"word":"introduce","level":"A1"},{"word":"land","level":"A1"},{"word":"literature","level":"B1"},{"word":"maths","level":"A2"},{"word":"introduction","level":"A2"},{"word":"landscape","level":"B2"},{"word":"little","level":"A1"},{"word":"matter","level":"A2"},{"word":"invent","level":"A2"},{"word":"language","level":"A1"},{"word":"live","level":"A1"},{"word":"maximum","level":"B2"},{"word":"invention","level":"A2"},{"word":"laptop","level":"A2"},{"word":"May","level":"A1"},{"word":"invest","level":"B1"},{"word":"large","level":"A1"},{"word":"lively","level":"B2"},{"word":"investigate","level":"B1"},{"word":"largely","level":"B2"},{"word":"living","level":"B1"},{"word":"maybe","level":"A1"},{"word":"investigation","level":"B2"},{"word":"last","level":"A1"},{"word":"load","level":"B2"},{"word":"me","level":"A1"},{"word":"investment","level":"B2"},{"word":"loan","level":"B2"},{"word":"meal","level":"A1"},{"word":"invitation","level":"A2"},{"word":"late","level":"A1"},{"word":"local","level":"A1"},{"word":"mean","level":"A1"},{"word":"invite","level":"A2"},{"word":"later","level":"A1"},{"word":"locate","level":"B1"},{"word":"meaning","level":"A1"},{"word":"involve","level":"A2"},{"word":"latest","level":"B1"},{"word":"located","level":"B1"},{"word":"means","level":"B2"},{"word":"involved","level":"B1"},{"word":"laugh","level":"A1"},{"word":"location","level":"B1"},{"word":"meanwhile","level":"B1"},{"word":"iron","level":"B1"},{"word":"laughter","level":"A2"},{"word":"lock","level":"A2"},{"word":"measure","level":"B1"},{"word":"island","level":"A1"},{"word":"launch","level":"B2"},{"word":"logical","level":"B2"},{"word":"measurement","level":"B2"},{"word":"issue","level":"B1"},{"word":"law","level":"A2"},{"word":"lonely","level":"B1"},{"word":"meat","level":"A1"},{"word":"IT","level":"B1"},{"word":"lawyer","level":"A2"},{"word":"long","level":"A1"},{"word":"media","level":"A2"},{"word":"lay","level":"B1"},{"word":"long-term","level":"B2"},{"word":"medical","level":"A2"},{"word":"item","level":"A2"},{"word":"layer","level":"B1"},{"word":"look","level":"A1"},{"word":"medicine","level":"A2"},{"word":"its","level":"A1"},{"word":"lazy","level":"A2"},{"word":"loose","level":"B2"},{"word":"medium","level":"B1"},{"word":"itself","level":"A2"},{"word":"lead","level":"A2"},{"word":"lord","level":"B2"},{"word":"meet","level":"A1"},{"word":"jacket","level":"A1"},{"word":"leader","level":"A2"},{"word":"lorry","level":"A2"},{"word":"meeting","level":"A1"},{"word":"jam","level":"A2"},{"word":"leadership","level":"B2"},{"word":"lose","level":"A1"},{"word":"melt","level":"B2"},{"word":"January","level":"A1"},{"word":"leading","level":"B1"},{"word":"loss","level":"B1"},{"word":"member","level":"A1"},{"word":"jazz","level":"A2"},{"word":"leaf","level":"B1"},{"word":"lost","level":"A2"},{"word":"memory","level":"A2"},{"word":"jeans","level":"A1"},{"word":"league","level":"B2"},{"word":"lot","level":"A1"},{"word":"mental","level":"B1"},{"word":"jewellery","level":"A2"},{"word":"lean","level":"B2"},{"word":"loud","level":"A2"},{"word":"mention","level":"A2"},{"word":"job","level":"A1"},{"word":"learn","level":"A1"},{"word":"loudly","level":"A2"},{"word":"menu","level":"A1"},{"word":"join","level":"A1"},{"word":"learning","level":"A2"},{"word":"love","level":"A1"},{"word":"mess","level":"B1"},{"word":"joke","level":"A2"},{"word":"least","level":"A2"},{"word":"lovely","level":"A2"},{"word":"message","level":"A1"},{"word":"journal","level":"B1"},{"word":"leather","level":"B1"},{"word":"low","level":"A2"},{"word":"metal","level":"A2"},{"word":"journalist","level":"A2"},{"word":"leave","level":"A1"},{"word":"lower","level":"B2"},{"word":"method","level":"A2"},{"word":"journey","level":"A1"},{"word":"lecture","level":"A2"},{"word":"luck","level":"A2"},{"word":"metre","level":"A1"},{"word":"joy","level":"B2"},{"word":"left","level":"A1"},{"word":"lucky","level":"A2"},{"word":"middle","level":"A2"},{"word":"judge","level":"B1"},{"word":"leg","level":"A1"},{"word":"lunch","level":"A1"},{"word":"midnight","level":"A1"},{"word":"judgement","level":"B2"},{"word":"legal","level":"B1"},{"word":"lung","level":"B2"},{"word":"might","level":"A2"},{"word":"juice","level":"A1"},{"word":"leisure","level":"B1"},{"word":"luxury","level":"B1"},{"word":"mild","level":"B1"},{"word":"July","level":"A1"},{"word":"lemon","level":"A2"},{"word":"machine","level":"A1"},{"word":"mile","level":"A1"},{"word":"jump","level":"A2"},{"word":"lend","level":"A2"},{"word":"mad","level":"B1"},{"word":"military","level":"B2"},{"word":"magazine","level":"A1"},{"word":"milk","level":"A1"},{"word":"million","level":"A1"},{"word":"nature","level":"A2"},{"word":"October","level":"A1"},{"word":"package","level":"B1"},{"word":"mind","level":"A2"},{"word":"near","level":"A1"},{"word":"odd","level":"B1"},{"word":"page","level":"A1"},{"word":"mine","level":"A2"},{"word":"nearly","level":"A2"},{"word":"of","level":"A1"},{"word":"pain","level":"A2"},{"word":"neat","level":"B2"},{"word":"off","level":"A1"},{"word":"painful","level":"B1"},{"word":"mineral","level":"B2"},{"word":"necessarily","level":"B1"},{"word":"offence","level":"B2"},{"word":"paint","level":"A1"},{"word":"minimum","level":"B2"},{"word":"necessary","level":"A2"},{"word":"offend","level":"B2"},{"word":"painter","level":"A2"},{"word":"minister","level":"B2"},{"word":"neck","level":"A2"},{"word":"offensive","level":"B2"},{"word":"painting","level":"A1"},{"word":"minor","level":"B2"},{"word":"need","level":"A1"},{"word":"offer","level":"A2"},{"word":"pair","level":"A1"},{"word":"minority","level":"B2"},{"word":"needle","level":"B1"},{"word":"office","level":"A1"},{"word":"palace","level":"A2"},{"word":"minute","level":"A1"},{"word":"negative","level":"A1"},{"word":"officer","level":"A2"},{"word":"pale","level":"B1"},{"word":"mirror","level":"A2"},{"word":"neighbour","level":"A1"},{"word":"official","level":"B1"},{"word":"pan","level":"B1"},{"word":"miss","level":"A1"},{"word":"neighbourhood","level":"B1"},{"word":"often","level":"A1"},{"word":"panel","level":"B2"},{"word":"missing","level":"A2"},{"word":"neither","level":"A2"},{"word":"oh","level":"A1"},{"word":"pants","level":"A2"},{"word":"mission","level":"B2"},{"word":"nerve","level":"B2"},{"word":"oil","level":"A2"},{"word":"paper","level":"A1"},{"word":"mistake","level":"A1"},{"word":"nervous","level":"A2"},{"word":"OK","level":"A1"},{"word":"paragraph","level":"A1"},{"word":"mix","level":"B1"},{"word":"net","level":"B1"},{"word":"old","level":"A1"},{"word":"parent","level":"A1"},{"word":"mixed","level":"B2"},{"word":"network","level":"A2"},{"word":"old-fashioned","level":"B1"},{"word":"park","level":"A1"},{"word":"mixture","level":"B1"},{"word":"never","level":"A1"},{"word":"on","level":"A1"},{"word":"parking","level":"A2"},{"word":"mobile","level":"A2"},{"word":"nevertheless","level":"B2"},{"word":"once","level":"A1"},{"word":"parliament","level":"B2"},{"word":"model","level":"A1"},{"word":"new","level":"A1"},{"word":"one","level":"A1"},{"word":"part","level":"A1"},{"word":"modern","level":"A1"},{"word":"news","level":"A1"},{"word":"onion","level":"A1"},{"word":"participant","level":"B2"},{"word":"modify","level":"B2"},{"word":"newspaper","level":"A1"},{"word":"online","level":"A1"},{"word":"participate","level":"B1"},{"word":"moment","level":"A1"},{"word":"next","level":"A1"},{"word":"only","level":"A1"},{"word":"particular","level":"A2"},{"word":"Monday","level":"A1"},{"word":"onto","level":"A2"},{"word":"particularly","level":"B1"},{"word":"money","level":"A1"},{"word":"nice","level":"A1"},{"word":"open","level":"A1"},{"word":"partly","level":"B2"},{"word":"monitor","level":"B2"},{"word":"night","level":"A1"},{"word":"opening","level":"B2"},{"word":"partner","level":"A1"},{"word":"monkey","level":"A2"},{"word":"nightmare","level":"B2"},{"word":"operate","level":"B2"},{"word":"party","level":"A1"},{"word":"month","level":"A1"},{"word":"nine","level":"A1"},{"word":"operation","level":"B1"},{"word":"pass","level":"A2"},{"word":"mood","level":"B1"},{"word":"nineteen","level":"A1"},{"word":"opinion","level":"A1"},{"word":"passage","level":"B2"},{"word":"moon","level":"A2"},{"word":"ninety","level":"A1"},{"word":"opponent","level":"B2"},{"word":"passenger","level":"A2"},{"word":"moral","level":"B2"},{"word":"no","level":"A1"},{"word":"opportunity","level":"A2"},{"word":"passion","level":"B1"},{"word":"more","level":"A1"},{"word":"oppose","level":"B2"},{"word":"passport","level":"A1"},{"word":"morning","level":"A1"},{"word":"nobody","level":"A1"},{"word":"opposed","level":"B2"},{"word":"past","level":"A1"},{"word":"most","level":"A1"},{"word":"noise","level":"A2"},{"word":"opposite","level":"A1"},{"word":"path","level":"B1"},{"word":"mostly","level":"A2"},{"word":"noisy","level":"A2"},{"word":"opposition","level":"B2"},{"word":"patient","level":"A2"},{"word":"mother","level":"A1"},{"word":"none","level":"A2"},{"word":"option","level":"A2"},{"word":"pattern","level":"A2"},{"word":"motor","level":"B2"},{"word":"nor","level":"B1"},{"word":"or","level":"A1"},{"word":"pay","level":"A1"},{"word":"motorcycle","level":"A2"},{"word":"normal","level":"A2"},{"word":"orange","level":"A1"},{"word":"payment","level":"B1"},{"word":"mount","level":"B2"},{"word":"normally","level":"A2"},{"word":"order","level":"A1"},{"word":"peace","level":"A2"},{"word":"mountain","level":"A1"},{"word":"north","level":"A1"},{"word":"ordinary","level":"A2"},{"word":"peaceful","level":"B1"},{"word":"mouse","level":"A1"},{"word":"northern","level":"B1"},{"word":"organ","level":"B2"},{"word":"pen","level":"A1"},{"word":"mouth","level":"A1"},{"word":"nose","level":"A1"},{"word":"organization","level":"A2"},{"word":"pencil","level":"A1"},{"word":"move","level":"A1"},{"word":"not","level":"A1"},{"word":"organize","level":"A2"},{"word":"penny","level":"A2"},{"word":"movement","level":"A2"},{"word":"note","level":"A1"},{"word":"organized","level":"B1"},{"word":"pension","level":"B2"},{"word":"movie","level":"A1"},{"word":"nothing","level":"A1"},{"word":"organizer","level":"B1"},{"word":"people","level":"A1"},{"word":"much","level":"A1"},{"word":"notice","level":"A2"},{"word":"origin","level":"B2"},{"word":"pepper","level":"A1"},{"word":"mud","level":"B1"},{"word":"notion","level":"B2"},{"word":"original","level":"A2"},{"word":"per","level":"A2"},{"word":"multiple","level":"B2"},{"word":"novel","level":"A2"},{"word":"originally","level":"B1"},{"word":"multiply","level":"B2"},{"word":"November","level":"A1"},{"word":"other","level":"A1"},{"word":"percentage","level":"B1"},{"word":"mum","level":"A1"},{"word":"now","level":"A1"},{"word":"otherwise","level":"B2"},{"word":"perfect","level":"A1"},{"word":"murder","level":"B1"},{"word":"nowhere","level":"A2"},{"word":"ought","level":"B1"},{"word":"perfectly","level":"B1"},{"word":"muscle","level":"B1"},{"word":"nuclear","level":"B1"},{"word":"our","level":"A1"},{"word":"perform","level":"A2"},{"word":"museum","level":"A1"},{"word":"number","level":"A1"},{"word":"ours","level":"B1"},{"word":"performance","level":"B1"},{"word":"music","level":"A1"},{"word":"numerous","level":"B2"},{"word":"ourselves","level":"A2"},{"word":"perhaps","level":"A2"},{"word":"musical","level":"A2"},{"word":"nurse","level":"A1"},{"word":"out","level":"A1"},{"word":"period","level":"A1"},{"word":"musician","level":"A2"},{"word":"nut","level":"A2"},{"word":"outcome","level":"B2"},{"word":"permanent","level":"B2"},{"word":"must","level":"A1"},{"word":"obey","level":"B2"},{"word":"outdoor","level":"B1"},{"word":"permission","level":"A2"},{"word":"my","level":"A1"},{"word":"object","level":"A1"},{"word":"outdoors","level":"B1"},{"word":"permit","level":"B2"},{"word":"myself","level":"A2"},{"word":"objective","level":"B2"},{"word":"outer","level":"B2"},{"word":"person","level":"A1"},{"word":"mysterious","level":"B2"},{"word":"obligation","level":"B2"},{"word":"outline","level":"B2"},{"word":"personal","level":"A1"},{"word":"mystery","level":"B1"},{"word":"observation","level":"B2"},{"word":"outside","level":"A1"},{"word":"personality","level":"A2"},{"word":"nail","level":"B1"},{"word":"observe","level":"B2"},{"word":"personally","level":"B1"},{"word":"name","level":"A1"},{"word":"obtain","level":"B2"},{"word":"perspective","level":"B2"},{"word":"narrative","level":"B1"},{"word":"obvious","level":"B1"},{"word":"oven","level":"A2"},{"word":"persuade","level":"B1"},{"word":"narrow","level":"A2"},{"word":"obviously","level":"B1"},{"word":"over","level":"A1"},{"word":"pet","level":"A2"},{"word":"nation","level":"B1"},{"word":"occasion","level":"B1"},{"word":"overall","level":"B2"},{"word":"petrol","level":"A2"},{"word":"national","level":"A2"},{"word":"occasionally","level":"B2"},{"word":"owe","level":"B2"},{"word":"phase","level":"B2"},{"word":"native","level":"B1"},{"word":"occur","level":"B1"},{"word":"own","level":"A1"},{"word":"phenomenon","level":"B2"},{"word":"natural","level":"A1"},{"word":"ocean","level":"A2"},{"word":"owner","level":"A2"},{"word":"philosophy","level":"B2"},{"word":"naturally","level":"B1"},{"word":"o'clock","level":"A1"},{"word":"pace","level":"B2"},{"word":"phone","level":"A1"},{"word":"pack","level":"A2"},{"word":"photo","level":"A1"},{"word":"poster","level":"A2"},{"word":"pronounce","level":"A2"},{"word":"ready","level":"A1"},{"word":"photograph","level":"A1"},{"word":"pot","level":"B1"},{"word":"proof","level":"B2"},{"word":"real","level":"A1"},{"word":"photographer","level":"B1"},{"word":"potato","level":"A1"},{"word":"proper","level":"B1"},{"word":"realistic","level":"B2"},{"word":"photography","level":"B1"},{"word":"potential","level":"B2"},{"word":"properly","level":"B1"},{"word":"reality","level":"B1"},{"word":"phrase","level":"A1"},{"word":"pound","level":"A1"},{"word":"property","level":"B1"},{"word":"realize","level":"A2"},{"word":"physical","level":"A2"},{"word":"pour","level":"B1"},{"word":"proposal","level":"B2"},{"word":"really","level":"A1"},{"word":"physics","level":"A2"},{"word":"poverty","level":"B1"},{"word":"propose","level":"B2"},{"word":"reason","level":"A1"},{"word":"piano","level":"A1"},{"word":"powder","level":"B1"},{"word":"prospect","level":"B2"},{"word":"reasonable","level":"B2"},{"word":"pick","level":"A2"},{"word":"power","level":"A2"},{"word":"protect","level":"A2"},{"word":"recall","level":"B2"},{"word":"picture","level":"A1"},{"word":"powerful","level":"B1"},{"word":"protection","level":"B2"},{"word":"receipt","level":"B1"},{"word":"piece","level":"A1"},{"word":"practical","level":"B1"},{"word":"protest","level":"B1"},{"word":"receive","level":"A2"},{"word":"pig","level":"A1"},{"word":"practice","level":"A1"},{"word":"proud","level":"B1"},{"word":"recent","level":"A2"},{"word":"pile","level":"B2"},{"word":"practise","level":"A1"},{"word":"prove","level":"B1"},{"word":"recently","level":"A2"},{"word":"pilot","level":"A2"},{"word":"praise","level":"B2"},{"word":"provide","level":"A2"},{"word":"reception","level":"A2"},{"word":"pin","level":"B1"},{"word":"pray","level":"B1"},{"word":"psychologist","level":"B2"},{"word":"recipe","level":"A2"},{"word":"pink","level":"A1"},{"word":"prayer","level":"B1"},{"word":"psychology","level":"B2"},{"word":"recognize","level":"A2"},{"word":"pipe","level":"B1"},{"word":"predict","level":"A2"},{"word":"pub","level":"A2"},{"word":"recommend","level":"A2"},{"word":"pitch","level":"B2"},{"word":"prediction","level":"B1"},{"word":"public","level":"A2"},{"word":"recommendation","level":"B1"},{"word":"place","level":"A1"},{"word":"prefer","level":"A1"},{"word":"publication","level":"B2"},{"word":"record","level":"A2"},{"word":"plain","level":"B2"},{"word":"pregnant","level":"B2"},{"word":"publish","level":"A2"},{"word":"recording","level":"A2"},{"word":"plan","level":"A1"},{"word":"preparation","level":"B2"},{"word":"pull","level":"A2"},{"word":"recover","level":"B2"},{"word":"plane","level":"A1"},{"word":"prepare","level":"A1"},{"word":"punish","level":"B1"},{"word":"recycle","level":"A2"},{"word":"planet","level":"A2"},{"word":"prepared","level":"B1"},{"word":"punishment","level":"B1"},{"word":"red","level":"A1"},{"word":"planning","level":"B1"},{"word":"presence","level":"B2"},{"word":"pupil","level":"B2"},{"word":"reduce","level":"A2"},{"word":"plant","level":"A1"},{"word":"present","level":"A1"},{"word":"purchase","level":"B2"},{"word":"reduction","level":"B2"},{"word":"plastic","level":"A2"},{"word":"presentation","level":"B1"},{"word":"pure","level":"B2"},{"word":"refer","level":"A2"},{"word":"plate","level":"A2"},{"word":"preserve","level":"B2"},{"word":"purple","level":"A1"},{"word":"reference","level":"B1"},{"word":"platform","level":"A2"},{"word":"president","level":"A2"},{"word":"purpose","level":"A2"},{"word":"reflect","level":"B1"},{"word":"play","level":"A1"},{"word":"press","level":"B1"},{"word":"pursue","level":"B2"},{"word":"refuse","level":"A2"},{"word":"player","level":"A1"},{"word":"pressure","level":"B1"},{"word":"push","level":"A2"},{"word":"regard","level":"B2"},{"word":"pleasant","level":"B1"},{"word":"pretend","level":"B1"},{"word":"put","level":"A1"},{"word":"region","level":"A2"},{"word":"please","level":"A1"},{"word":"pretty","level":"A1"},{"word":"qualification","level":"B1"},{"word":"regional","level":"B2"},{"word":"pleased","level":"A2"},{"word":"prevent","level":"A2"},{"word":"qualified","level":"B1"},{"word":"register","level":"B2"},{"word":"pleasure","level":"B1"},{"word":"previous","level":"B1"},{"word":"qualify","level":"B1"},{"word":"regret","level":"B2"},{"word":"plenty","level":"B1"},{"word":"previously","level":"B1"},{"word":"quality","level":"A2"},{"word":"regular","level":"A2"},{"word":"plot","level":"B1"},{"word":"price","level":"A1"},{"word":"quantity","level":"A2"},{"word":"regularly","level":"B1"},{"word":"plus","level":"B1"},{"word":"priest","level":"B1"},{"word":"quarter","level":"A1"},{"word":"regulation","level":"B2"},{"word":"pocket","level":"A2"},{"word":"primary","level":"B1"},{"word":"queen","level":"A2"},{"word":"reject","level":"B1"},{"word":"poem","level":"B1"},{"word":"prime","level":"B2"},{"word":"question","level":"A1"},{"word":"relate","level":"B1"},{"word":"poet","level":"B1"},{"word":"prince","level":"B1"},{"word":"queue","level":"B1"},{"word":"related","level":"B1"},{"word":"poetry","level":"B1"},{"word":"princess","level":"B1"},{"word":"quick","level":"A1"},{"word":"relation","level":"B1"},{"word":"point","level":"A1"},{"word":"principle","level":"B2"},{"word":"quickly","level":"A1"},{"word":"relationship","level":"A2"},{"word":"pointed","level":"B2"},{"word":"print","level":"A2"},{"word":"quiet","level":"A1"},{"word":"relative","level":"B1"},{"word":"poison","level":"B1"},{"word":"printer","level":"A2"},{"word":"quietly","level":"A2"},{"word":"relatively","level":"B2"},{"word":"poisonous","level":"B1"},{"word":"printing","level":"B1"},{"word":"quit","level":"B1"},{"word":"relax","level":"A1"},{"word":"police","level":"A1"},{"word":"priority","level":"B2"},{"word":"quite","level":"A1"},{"word":"relaxed","level":"B1"},{"word":"policeman","level":"A1"},{"word":"prison","level":"A2"},{"word":"quotation","level":"B1"},{"word":"relaxing","level":"B1"},{"word":"policy","level":"B1"},{"word":"prisoner","level":"B1"},{"word":"quote","level":"B1"},{"word":"release","level":"B1"},{"word":"polite","level":"A2"},{"word":"privacy","level":"B2"},{"word":"race","level":"A2"},{"word":"relevant","level":"B2"},{"word":"political","level":"B1"},{"word":"private","level":"B1"},{"word":"reliable","level":"B1"},{"word":"politician","level":"B1"},{"word":"prize","level":"A2"},{"word":"racing","level":"B1"},{"word":"relief","level":"B2"},{"word":"politics","level":"B1"},{"word":"probably","level":"A1"},{"word":"radio","level":"A1"},{"word":"religion","level":"B1"},{"word":"pollution","level":"A2"},{"word":"problem","level":"A1"},{"word":"railway","level":"A2"},{"word":"religious","level":"B1"},{"word":"pool","level":"A1"},{"word":"procedure","level":"B2"},{"word":"rain","level":"A1"},{"word":"rely","level":"B2"},{"word":"poor","level":"A1"},{"word":"process","level":"A2"},{"word":"raise","level":"A2"},{"word":"remain","level":"B1"},{"word":"pop","level":"A2"},{"word":"produce","level":"A2"},{"word":"range","level":"B1"},{"word":"remark","level":"B2"},{"word":"popular","level":"A1"},{"word":"producer","level":"B1"},{"word":"rank","level":"B2"},{"word":"remember","level":"A1"},{"word":"popularity","level":"B2"},{"word":"product","level":"A1"},{"word":"rapid","level":"B2"},{"word":"remind","level":"B1"},{"word":"population","level":"A2"},{"word":"production","level":"B1"},{"word":"rapidly","level":"B2"},{"word":"remote","level":"B1"},{"word":"port","level":"B1"},{"word":"profession","level":"B1"},{"word":"rare","level":"B1"},{"word":"remove","level":"A2"},{"word":"portrait","level":"B1"},{"word":"professional","level":"A2"},{"word":"rarely","level":"B1"},{"word":"rent","level":"B1"},{"word":"pose","level":"B2"},{"word":"professor","level":"A2"},{"word":"rate","level":"A2"},{"word":"repair","level":"A2"},{"word":"position","level":"A2"},{"word":"profile","level":"A2"},{"word":"rather","level":"A2"},{"word":"repeat","level":"A1"},{"word":"positive","level":"A1"},{"word":"profit","level":"B1"},{"word":"raw","level":"B2"},{"word":"repeated","level":"B1"},{"word":"possess","level":"B2"},{"word":"program","level":"A2"},{"word":"reach","level":"A2"},{"word":"replace","level":"A2"},{"word":"possession","level":"A2"},{"word":"programme","level":"A1"},{"word":"react","level":"A2"},{"word":"reply","level":"A2"},{"word":"possibility","level":"A2"},{"word":"progress","level":"A2"},{"word":"reaction","level":"B1"},{"word":"report","level":"A1"},{"word":"possible","level":"A1"},{"word":"project","level":"A1"},{"word":"read","level":"A1"},{"word":"reporter","level":"A2"},{"word":"possibly","level":"B1"},{"word":"promise","level":"A2"},{"word":"reader","level":"A1"},{"word":"represent","level":"B1"},{"word":"post","level":"A1"},{"word":"promote","level":"B1"},{"word":"reading","level":"A1"},{"word":"representative","level":"B2"},{"word":"reputation","level":"B2"},{"word":"rush","level":"B2"},{"word":"September","level":"A1"},{"word":"similarly","level":"B1"},{"word":"request","level":"A2"},{"word":"sad","level":"A1"},{"word":"sequence","level":"B2"},{"word":"simple","level":"A2"},{"word":"require","level":"B1"},{"word":"sadly","level":"A2"},{"word":"series","level":"A2"},{"word":"simply","level":"B1"},{"word":"requirement","level":"B2"},{"word":"safe","level":"A2"},{"word":"serious","level":"A2"},{"word":"since","level":"A2"},{"word":"rescue","level":"B2"},{"word":"safety","level":"B1"},{"word":"seriously","level":"B1"},{"word":"sincere","level":"B2"},{"word":"research","level":"A2"},{"word":"sail","level":"A2"},{"word":"servant","level":"B1"},{"word":"sing","level":"A1"},{"word":"researcher","level":"A2"},{"word":"sailing","level":"A2"},{"word":"serve","level":"A2"},{"word":"singer","level":"A1"},{"word":"reservation","level":"B1"},{"word":"sailor","level":"B1"},{"word":"service","level":"A2"},{"word":"singing","level":"A2"},{"word":"reserve","level":"B2"},{"word":"salad","level":"A1"},{"word":"session","level":"B2"},{"word":"single","level":"A2"},{"word":"resident","level":"B2"},{"word":"salary","level":"A2"},{"word":"set","level":"B1"},{"word":"sink","level":"B1"},{"word":"resist","level":"B2"},{"word":"sale","level":"A2"},{"word":"sir","level":"A2"},{"word":"resolve","level":"B2"},{"word":"salt","level":"A1"},{"word":"setting","level":"B1"},{"word":"sister","level":"A1"},{"word":"resort","level":"B2"},{"word":"same","level":"A1"},{"word":"settle","level":"B2"},{"word":"sit","level":"A1"},{"word":"resource","level":"B1"},{"word":"sample","level":"B1"},{"word":"seven","level":"A1"},{"word":"site","level":"A2"},{"word":"respect","level":"B1"},{"word":"sand","level":"B1"},{"word":"seventeen","level":"A1"},{"word":"situation","level":"A1"},{"word":"respond","level":"A2"},{"word":"sandwich","level":"A1"},{"word":"seventy","level":"A1"},{"word":"six","level":"A1"},{"word":"response","level":"A2"},{"word":"satellite","level":"B2"},{"word":"several","level":"A2"},{"word":"sixteen","level":"A1"},{"word":"responsibility","level":"B1"},{"word":"satisfied","level":"B2"},{"word":"severe","level":"B2"},{"word":"sixty","level":"A1"},{"word":"responsible","level":"B1"},{"word":"satisfy","level":"B2"},{"word":"sex","level":"B1"},{"word":"size","level":"A2"},{"word":"rest","level":"A2"},{"word":"Saturday","level":"A1"},{"word":"sexual","level":"B1"},{"word":"ski","level":"A2"},{"word":"sauce","level":"A2"},{"word":"shade","level":"B2"},{"word":"skiing","level":"A2"},{"word":"restaurant","level":"A1"},{"word":"save","level":"A2"},{"word":"shadow","level":"B2"},{"word":"skill","level":"A1"},{"word":"result","level":"A1"},{"word":"saving","level":"B2"},{"word":"shake","level":"A2"},{"word":"skin","level":"A2"},{"word":"retain","level":"B2"},{"word":"say","level":"A1"},{"word":"shall","level":"A2"},{"word":"skirt","level":"A1"},{"word":"retire","level":"B1"},{"word":"scale","level":"B2"},{"word":"shallow","level":"B2"},{"word":"sky","level":"A2"},{"word":"retired","level":"B1"},{"word":"scan","level":"B1"},{"word":"shame","level":"B2"},{"word":"slave","level":"B2"},{"word":"return","level":"A1"},{"word":"scared","level":"A2"},{"word":"shape","level":"A2"},{"word":"sleep","level":"A1"},{"word":"reveal","level":"B2"},{"word":"scary","level":"A2"},{"word":"share","level":"A1"},{"word":"slice","level":"B1"},{"word":"review","level":"A2"},{"word":"scene","level":"A2"},{"word":"sharp","level":"B1"},{"word":"slide","level":"B2"},{"word":"revise","level":"B1"},{"word":"schedule","level":"A2"},{"word":"she","level":"A1"},{"word":"slight","level":"B2"},{"word":"revolution","level":"B2"},{"word":"scheme","level":"B2"},{"word":"sheep","level":"A1"},{"word":"slightly","level":"B1"},{"word":"reward","level":"B2"},{"word":"school","level":"A1"},{"word":"sheet","level":"A2"},{"word":"slip","level":"B2"},{"word":"rhythm","level":"B2"},{"word":"science","level":"A1"},{"word":"shelf","level":"B1"},{"word":"slope","level":"B2"},{"word":"rice","level":"A1"},{"word":"scientific","level":"B1"},{"word":"shell","level":"B1"},{"word":"slow","level":"A1"},{"word":"rich","level":"A1"},{"word":"scientist","level":"A1"},{"word":"shelter","level":"B2"},{"word":"slowly","level":"A2"},{"word":"rid","level":"B2"},{"word":"score","level":"A2"},{"word":"shift","level":"B1"},{"word":"small","level":"A1"},{"word":"ride","level":"A1"},{"word":"scream","level":"B2"},{"word":"shine","level":"B1"},{"word":"smart","level":"B1"},{"word":"right","level":"A1"},{"word":"screen","level":"A2"},{"word":"shiny","level":"B1"},{"word":"smartphone","level":"A2"},{"word":"ring","level":"A2"},{"word":"script","level":"B1"},{"word":"ship","level":"A2"},{"word":"smell","level":"A2"},{"word":"sculpture","level":"B1"},{"word":"shirt","level":"A1"},{"word":"smile","level":"A2"},{"word":"rise","level":"A2"},{"word":"sea","level":"A1"},{"word":"shock","level":"B2"},{"word":"smoke","level":"A2"},{"word":"risk","level":"B1"},{"word":"search","level":"A2"},{"word":"shocked","level":"B2"},{"word":"smoking","level":"A2"},{"word":"river","level":"A1"},{"word":"season","level":"A2"},{"word":"shoe","level":"A1"},{"word":"smooth","level":"B1"},{"word":"road","level":"A1"},{"word":"seat","level":"A2"},{"word":"shoot","level":"B1"},{"word":"snake","level":"A1"},{"word":"robot","level":"B1"},{"word":"second","level":""},{"word":"shooting","level":"B2"},{"word":"snow","level":"A1"},{"word":"rock","level":"A2"},{"word":"shop","level":"A1"},{"word":"so","level":"A1"},{"word":"shopping","level":"A1"},{"word":"soap","level":"A2"},{"word":"role","level":"A2"},{"word":"short","level":"A1"},{"word":"soccer","level":"A2"},{"word":"roll","level":"B1"},{"word":"secondary","level":"B1"},{"word":"shot","level":"B2"},{"word":"social","level":"A2"},{"word":"romantic","level":"B1"},{"word":"secondly","level":"A2"},{"word":"should","level":"A1"},{"word":"society","level":"A2"},{"word":"roof","level":"A2"},{"word":"secret","level":"A2"},{"word":"shoulder","level":"A2"},{"word":"sock","level":"A2"},{"word":"room","level":"A1"},{"word":"secretary","level":"A2"},{"word":"shout","level":"A2"},{"word":"soft","level":"A2"},{"word":"root","level":"B2"},{"word":"section","level":"A1"},{"word":"show","level":"A1"},{"word":"software","level":"B1"},{"word":"rope","level":"B1"},{"word":"sector","level":"B2"},{"word":"shower","level":"A1"},{"word":"soil","level":"B1"},{"word":"rough","level":"B1"},{"word":"secure","level":"B2"},{"word":"shut","level":"A2"},{"word":"solar","level":"B2"},{"word":"round","level":"A2"},{"word":"security","level":"B1"},{"word":"shy","level":"B1"},{"word":"soldier","level":"A2"},{"word":"route","level":"A2"},{"word":"see","level":"A1"},{"word":"sick","level":"A1"},{"word":"solid","level":"B1"},{"word":"routine","level":"A1"},{"word":"seed","level":"B1"},{"word":"side","level":"A2"},{"word":"solution","level":"A2"},{"word":"row","level":"B1"},{"word":"seek","level":"B2"},{"word":"sight","level":"B1"},{"word":"solve","level":"A2"},{"word":"royal","level":"B1"},{"word":"seem","level":"A2"},{"word":"sign","level":"A2"},{"word":"some","level":"A1"},{"word":"rub","level":"B2"},{"word":"select","level":"B2"},{"word":"signal","level":"B1"},{"word":"somebody","level":"A1"},{"word":"rubber","level":"B2"},{"word":"selection","level":"B2"},{"word":"significant","level":"B2"},{"word":"someone","level":"A1"},{"word":"rubbish","level":"A2"},{"word":"self","level":"B2"},{"word":"significantly","level":"B2"},{"word":"something","level":"A1"},{"word":"rude","level":"A2"},{"word":"sell","level":"A1"},{"word":"silence","level":"B2"},{"word":"sometimes","level":"A1"},{"word":"rugby","level":"B1"},{"word":"send","level":"A1"},{"word":"silent","level":"B1"},{"word":"somewhat","level":"B2"},{"word":"rule","level":"A1"},{"word":"senior","level":"B2"},{"word":"silk","level":"B2"},{"word":"somewhere","level":"A2"},{"word":"run","level":"A1"},{"word":"sense","level":"A2"},{"word":"silly","level":"B1"},{"word":"son","level":"A1"},{"word":"runner","level":"A2"},{"word":"sensible","level":"B1"},{"word":"silver","level":"A2"},{"word":"song","level":"A1"},{"word":"running","level":"A2"},{"word":"sensitive","level":"B2"},{"word":"similar","level":"A1"},{"word":"soon","level":"A1"},{"word":"rural","level":"B2"},{"word":"sentence","level":"A1"},{"word":"similarity","level":"B1"},{"word":"sorry","level":"A1"},{"word":"separate","level":"A2"},{"word":"sort","level":"A2"},{"word":"strange","level":"A2"},{"word":"system","level":"A2"},{"word":"though","level":"B1"},{"word":"soul","level":"B2"},{"word":"stranger","level":"B1"},{"word":"table","level":"A1"},{"word":"thought","level":"A2"},{"word":"sound","level":"A1"},{"word":"strategy","level":"A2"},{"word":"tablet","level":"A2"},{"word":"thousand","level":"A1"},{"word":"soup","level":"A1"},{"word":"stream","level":"B2"},{"word":"tail","level":"B1"},{"word":"threat","level":"B2"},{"word":"source","level":"A2"},{"word":"street","level":"A1"},{"word":"take","level":"A1"},{"word":"threaten","level":"B2"},{"word":"south","level":"A1"},{"word":"strength","level":"B1"},{"word":"tale","level":"B2"},{"word":"three","level":"A1"},{"word":"southern","level":"B1"},{"word":"stress","level":"A2"},{"word":"talent","level":"B1"},{"word":"throat","level":"B1"},{"word":"space","level":"A1"},{"word":"stretch","level":"B2"},{"word":"talented","level":"B1"},{"word":"through","level":"A1"},{"word":"speak","level":"A1"},{"word":"strict","level":"B2"},{"word":"talk","level":"A1"},{"word":"throughout","level":"B1"},{"word":"speaker","level":"A2"},{"word":"strike","level":"B2"},{"word":"tall","level":"A1"},{"word":"throw","level":"A2"},{"word":"special","level":"A1"},{"word":"string","level":"B1"},{"word":"tank","level":"B2"},{"word":"Thursday","level":"A1"},{"word":"specialist","level":"B2"},{"word":"strong","level":"A1"},{"word":"tape","level":"B1"},{"word":"thus","level":"B2"},{"word":"species","level":"B2"},{"word":"strongly","level":"B1"},{"word":"target","level":"A2"},{"word":"ticket","level":"A1"},{"word":"specific","level":"A2"},{"word":"structure","level":"A2"},{"word":"task","level":"A2"},{"word":"tidy","level":"A2"},{"word":"specifically","level":"B1"},{"word":"struggle","level":"B2"},{"word":"taste","level":"A2"},{"word":"tie","level":"A2"},{"word":"speech","level":"A2"},{"word":"student","level":"A1"},{"word":"tax","level":"B1"},{"word":"tight","level":"B1"},{"word":"speed","level":"A2"},{"word":"studio","level":"B1"},{"word":"taxi","level":"A1"},{"word":"till","level":"B1"},{"word":"spell","level":"A1"},{"word":"study","level":"A1"},{"word":"tea","level":"A1"},{"word":"time","level":"A1"},{"word":"spelling","level":"A1"},{"word":"stuff","level":"B1"},{"word":"teach","level":"A1"},{"word":"tin","level":"B1"},{"word":"spend","level":"A1"},{"word":"stupid","level":"A2"},{"word":"teacher","level":"A1"},{"word":"tiny","level":"B1"},{"word":"spending","level":"B1"},{"word":"style","level":"A1"},{"word":"teaching","level":"A2"},{"word":"tip","level":"A2"},{"word":"spicy","level":"B1"},{"word":"subject","level":"A1"},{"word":"team","level":"A1"},{"word":"tired","level":"A1"},{"word":"spider","level":"A2"},{"word":"submit","level":"B2"},{"word":"tear","level":"B2"},{"word":"title","level":"A1"},{"word":"spirit","level":"B1"},{"word":"substance","level":"B1"},{"word":"to","level":"A1"},{"word":"spiritual","level":"B2"},{"word":"succeed","level":"A2"},{"word":"technical","level":"B1"},{"word":"today","level":"A1"},{"word":"split","level":"B2"},{"word":"success","level":"A1"},{"word":"technique","level":"B1"},{"word":"toe","level":"B1"},{"word":"spoken","level":"B1"},{"word":"successful","level":"A2"},{"word":"technology","level":"A2"},{"word":"together","level":"A1"},{"word":"sponsor","level":"B2"},{"word":"successfully","level":"B1"},{"word":"teenage","level":"A2"},{"word":"toilet","level":"A1"},{"word":"spoon","level":"A2"},{"word":"such","level":"A2"},{"word":"teenager","level":"A1"},{"word":"tomato","level":"A1"},{"word":"sport","level":"A1"},{"word":"sudden","level":"B1"},{"word":"telephone","level":"A1"},{"word":"tomorrow","level":"A1"},{"word":"spot","level":"B1"},{"word":"suddenly","level":"A2"},{"word":"television","level":"A1"},{"word":"tone","level":"B2"},{"word":"spread","level":"B1"},{"word":"suffer","level":"B1"},{"word":"tell","level":"A1"},{"word":"tongue","level":"B1"},{"word":"spring","level":"A1"},{"word":"sugar","level":"A1"},{"word":"temperature","level":"A2"},{"word":"tonight","level":"A1"},{"word":"square","level":"A2"},{"word":"suggest","level":"A2"},{"word":"temporary","level":"B2"},{"word":"too","level":"A1"},{"word":"stable","level":"B2"},{"word":"suggestion","level":"A2"},{"word":"ten","level":"A1"},{"word":"tool","level":"A2"},{"word":"stadium","level":"B1"},{"word":"suit","level":"A2"},{"word":"tend","level":"B1"},{"word":"tooth","level":"A1"},{"word":"staff","level":"B1"},{"word":"suitable","level":"B1"},{"word":"tennis","level":"A1"},{"word":"top","level":"A2"},{"word":"stage","level":"A2"},{"word":"sum","level":"B2"},{"word":"tent","level":"B1"},{"word":"topic","level":"A1"},{"word":"stair","level":"A2"},{"word":"summarize","level":"B1"},{"word":"term","level":"A2"},{"word":"total","level":"B1"},{"word":"stamp","level":"A2"},{"word":"summary","level":"B1"},{"word":"terrible","level":"A1"},{"word":"totally","level":"B1"},{"word":"stand","level":"A1"},{"word":"summer","level":"A1"},{"word":"test","level":"A1"},{"word":"touch","level":"A2"},{"word":"standard","level":"B1"},{"word":"sun","level":"A1"},{"word":"text","level":"A1"},{"word":"tough","level":"B2"},{"word":"star","level":"A1"},{"word":"Sunday","level":"A1"},{"word":"than","level":"A1"},{"word":"tour","level":"A2"},{"word":"stare","level":"B2"},{"word":"supermarket","level":"A1"},{"word":"thank","level":"A1"},{"word":"tourism","level":"A2"},{"word":"start","level":"A1"},{"word":"supply","level":"B1"},{"word":"thanks","level":"A1"},{"word":"tourist","level":"A1"},{"word":"state","level":"A2"},{"word":"support","level":"A2"},{"word":"that","level":"A1"},{"word":"towards","level":"A2"},{"word":"statement","level":"A1"},{"word":"supporter","level":"B1"},{"word":"the","level":"A1"},{"word":"towel","level":"A2"},{"word":"station","level":"A1"},{"word":"suppose","level":"A2"},{"word":"theatre","level":"A1"},{"word":"tower","level":"A2"},{"word":"statistic","level":"B1"},{"word":"sure","level":"A1"},{"word":"their","level":"A1"},{"word":"town","level":"A1"},{"word":"statue","level":"B1"},{"word":"surely","level":"B1"},{"word":"theirs","level":"B1"},{"word":"toy","level":"A2"},{"word":"status","level":"B2"},{"word":"surface","level":"B1"},{"word":"them","level":"A1"},{"word":"track","level":"A2"},{"word":"stay","level":"A1"},{"word":"surgery","level":"B2"},{"word":"theme","level":"B1"},{"word":"trade","level":"B1"},{"word":"steady","level":"B2"},{"word":"surprise","level":"A2"},{"word":"themselves","level":"A2"},{"word":"tradition","level":"A2"},{"word":"steal","level":"A2"},{"word":"surprised","level":"A2"},{"word":"then","level":"A1"},{"word":"traditional","level":"A2"},{"word":"steel","level":"B2"},{"word":"surprising","level":"A2"},{"word":"theory","level":"B1"},{"word":"traffic","level":"A1"},{"word":"steep","level":"B2"},{"word":"surround","level":"B2"},{"word":"therapy","level":"B2"},{"word":"train","level":"A1"},{"word":"step","level":"A2"},{"word":"surrounding","level":"B2"},{"word":"there","level":"A1"},{"word":"trainer","level":"A2"},{"word":"stick","level":"B1"},{"word":"survey","level":"A2"},{"word":"therefore","level":"B1"},{"word":"training","level":"A2"},{"word":"survive","level":"B1"},{"word":"they","level":"A1"},{"word":"transfer","level":"B2"},{"word":"sticky","level":"B2"},{"word":"suspect","level":"B2"},{"word":"thick","level":"A2"},{"word":"transform","level":"B2"},{"word":"stiff","level":"B2"},{"word":"swear","level":"B2"},{"word":"thief","level":"A2"},{"word":"transition","level":"B2"},{"word":"still","level":"A1"},{"word":"sweater","level":"A1"},{"word":"thin","level":"A2"},{"word":"translate","level":"B1"},{"word":"stock","level":"B2"},{"word":"sweep","level":"B2"},{"word":"thing","level":"A1"},{"word":"translation","level":"B1"},{"word":"stomach","level":"A2"},{"word":"sweet","level":"A2"},{"word":"think","level":"A1"},{"word":"transport","level":"A2"},{"word":"stone","level":"A2"},{"word":"swim","level":"A1"},{"word":"thinking","level":"A2"},{"word":"travel","level":"A1"},{"word":"stop","level":"A1"},{"word":"swimming","level":"A1"},{"word":"third","level":"A1"},{"word":"traveller","level":"A2"},{"word":"store","level":"A2"},{"word":"switch","level":"B1"},{"word":"thirsty","level":"A1"},{"word":"treat","level":"B1"},{"word":"storm","level":"A2"},{"word":"symbol","level":"A2"},{"word":"thirteen","level":"A1"},{"word":"treatment","level":"B1"},{"word":"story","level":"A1"},{"word":"sympathy","level":"B2"},{"word":"thirty","level":"A1"},{"word":"tree","level":"A1"},{"word":"straight","level":"A2"},{"word":"symptom","level":"B1"},{"word":"this","level":"A1"},{"word":"trend","level":"B1"},{"word":"trial","level":"B2"},{"word":"unusual","level":"A2"},{"word":"want","level":"A1"},{"word":"wind","level":"B2"},{"word":"trick","level":"B1"},{"word":"up","level":"A1"},{"word":"war","level":"A2"},{"word":"window","level":"A1"},{"word":"trip","level":"A1"},{"word":"update","level":"B1"},{"word":"warm","level":"A1"},{"word":"wine","level":"A1"},{"word":"tropical","level":"B2"},{"word":"upon","level":"B1"},{"word":"warn","level":"B1"},{"word":"wing","level":"B1"},{"word":"trouble","level":"A2"},{"word":"upper","level":"B2"},{"word":"warning","level":"B1"},{"word":"winner","level":"A2"},{"word":"trousers","level":"A1"},{"word":"upset","level":"B1"},{"word":"wash","level":"A1"},{"word":"winter","level":"A1"},{"word":"truck","level":"A2"},{"word":"upstairs","level":"A1"},{"word":"washing","level":"A2"},{"word":"wire","level":"B2"},{"word":"true","level":"A1"},{"word":"upwards","level":"B2"},{"word":"waste","level":"B1"},{"word":"wise","level":"B2"},{"word":"truly","level":"B2"},{"word":"urban","level":"B2"},{"word":"watch","level":"A1"},{"word":"wish","level":"A2"},{"word":"trust","level":"B2"},{"word":"urge","level":"B2"},{"word":"water","level":"A1"},{"word":"with","level":"A1"},{"word":"truth","level":"B1"},{"word":"us","level":"A1"},{"word":"wave","level":"A2"},{"word":"within","level":"B1"},{"word":"try","level":"A1"},{"word":"use","level":"A1"},{"word":"way","level":"A1"},{"word":"without","level":"A1"},{"word":"T-shirt","level":"A1"},{"word":"used","level":"B1"},{"word":"we","level":"A1"},{"word":"witness","level":"B2"},{"word":"tube","level":"B1"},{"word":"weak","level":"A2"},{"word":"woman","level":"A1"},{"word":"Tuesday","level":"A1"},{"word":"weakness","level":"B2"},{"word":"wonder","level":"B1"},{"word":"tune","level":"B2"},{"word":"useful","level":"A1"},{"word":"wealth","level":"B2"},{"word":"wonderful","level":"A1"},{"word":"tunnel","level":"B2"},{"word":"user","level":"A2"},{"word":"wealthy","level":"B2"},{"word":"wood","level":"A2"},{"word":"turn","level":"A1"},{"word":"usual","level":"A2"},{"word":"weapon","level":"B1"},{"word":"wooden","level":"A2"},{"word":"TV","level":"A1"},{"word":"usually","level":"A1"},{"word":"wear","level":"A1"},{"word":"wool","level":"B1"},{"word":"twelve","level":"A1"},{"word":"vacation","level":"A1"},{"word":"weather","level":"A1"},{"word":"word","level":"A1"},{"word":"twenty","level":"A1"},{"word":"valley","level":"A2"},{"word":"web","level":"A2"},{"word":"work","level":"A1"},{"word":"twice","level":"A1"},{"word":"valuable","level":"B1"},{"word":"website","level":"A1"},{"word":"worker","level":"A1"},{"word":"twin","level":"A2"},{"word":"value","level":"B1"},{"word":"wedding","level":"A2"},{"word":"working","level":"A2"},{"word":"two","level":"A1"},{"word":"van","level":"A2"},{"word":"Wednesday","level":"A1"},{"word":"world","level":"A1"},{"word":"type","level":"A1"},{"word":"variety","level":"A2"},{"word":"week","level":"A1"},{"word":"worldwide","level":"B1"},{"word":"typical","level":"A2"},{"word":"various","level":"B1"},{"word":"weekend","level":"A1"},{"word":"worried","level":"A2"},{"word":"typically","level":"B1"},{"word":"vary","level":"B2"},{"word":"weigh","level":"B1"},{"word":"worry","level":"A2"},{"word":"tyre","level":"B1"},{"word":"vast","level":"B2"},{"word":"weight","level":"A2"},{"word":"worse","level":"A2"},{"word":"ugly","level":"B1"},{"word":"vegetable","level":"A1"},{"word":"welcome","level":"A1"},{"word":"worst","level":"A2"},{"word":"ultimately","level":"B2"},{"word":"vehicle","level":"A2"},{"word":"well","level":"A1"},{"word":"worth","level":"B1"},{"word":"umbrella","level":"A1"},{"word":"venue","level":"B2"},{"word":"west","level":"A1"},{"word":"would","level":"A1"},{"word":"unable","level":"B1"},{"word":"version","level":"B1"},{"word":"western","level":"B1"},{"word":"wound","level":"B2"},{"word":"uncle","level":"A1"},{"word":"very","level":"A1"},{"word":"wet","level":"A2"},{"word":"wow","level":"A2"},{"word":"uncomfortable","level":"B1"},{"word":"via","level":"B2"},{"word":"what","level":"A1"},{"word":"wrap","level":"B2"},{"word":"unconscious","level":"B2"},{"word":"victim","level":"B1"},{"word":"whatever","level":"B1"},{"word":"write","level":"A1"},{"word":"under","level":"A1"},{"word":"victory","level":"B2"},{"word":"wheel","level":"A2"},{"word":"writer","level":"A1"},{"word":"underground","level":"A2"},{"word":"video","level":"A1"},{"word":"when","level":"A1"},{"word":"writing","level":"A1"},{"word":"understand","level":"A1"},{"word":"view","level":"A2"},{"word":"whenever","level":"B1"},{"word":"written","level":"B1"},{"word":"understanding","level":"A2"},{"word":"viewer","level":"B1"},{"word":"where","level":"A1"},{"word":"wrong","level":"A1"},{"word":"underwear","level":"B1"},{"word":"village","level":"A1"},{"word":"whereas","level":"B2"},{"word":"yard","level":"B1"},{"word":"unemployed","level":"B1"},{"word":"violence","level":"B2"},{"word":"wherever","level":"B2"},{"word":"yeah","level":"A1"},{"word":"unemployment","level":"B1"},{"word":"violent","level":"B1"},{"word":"whether","level":"B1"},{"word":"year","level":"A1"},{"word":"unexpected","level":"B2"},{"word":"virtual","level":"B2"},{"word":"which","level":"A1"},{"word":"yellow","level":"A1"},{"word":"unfair","level":"B1"},{"word":"virus","level":"A2"},{"word":"while","level":"A2"},{"word":"yes","level":"A1"},{"word":"unfortunately","level":"A2"},{"word":"vision","level":"B2"},{"word":"whisper","level":"B2"},{"word":"yesterday","level":"A1"},{"word":"unhappy","level":"A2"},{"word":"visit","level":"A1"},{"word":"white","level":"A1"},{"word":"yet","level":"A2"},{"word":"uniform","level":"A2"},{"word":"visitor","level":"A1"},{"word":"who","level":"A1"},{"word":"you","level":"A1"},{"word":"union","level":"B1"},{"word":"visual","level":"B2"},{"word":"whole","level":"A2"},{"word":"young","level":"A1"},{"word":"unique","level":"B2"},{"word":"vital","level":"B2"},{"word":"whom","level":"B2"},{"word":"your","level":"A1"},{"word":"unit","level":"A2"},{"word":"vitamin","level":"B2"},{"word":"whose","level":"A2"},{"word":"yours","level":"A2"},{"word":"united","level":"A2"},{"word":"voice","level":"A2"},{"word":"why","level":"A1"},{"word":"yourself","level":"A1"},{"word":"universe","level":"B2"},{"word":"volume","level":"B2"},{"word":"wide","level":"A2"},{"word":"youth","level":"B1"},{"word":"university","level":"A1"},{"word":"volunteer","level":"B1"},{"word":"widely","level":"B2"},{"word":"zero","level":"A2"},{"word":"unknown","level":"B2"},{"word":"vote","level":"B1"},{"word":"wife","level":"A1"},{"word":"zone","level":"B2"},{"word":"unless","level":"B1"},{"word":"wage","level":"B2"},{"word":"wild","level":"A2"},{"word":"unlike","level":"B1"},{"word":"wait","level":"A1"},{"word":"wildlife","level":"B2"},{"word":"unlikely","level":"B1"},{"word":"waiter","level":"A1"},{"word":"will","level":"A1"},{"word":"unnecessary","level":"B1"},{"word":"wake","level":"A1"},{"word":"willing","level":"B2"},{"word":"unpleasant","level":"B1"},{"word":"walk","level":"A1"},{"word":"win","level":"A1"},{"word":"until","level":"A1"},{"word":"wall","level":"A1"}];
+
+// ---- State ----
+let quizWords = [];
+let answers = [];   // { word, level, answer, skipped }
+let currentIndex = 0;
+let selectedLevels = new Set(['A1','A2','B1','B2']);
+let quizMode = 'standard'; // 'standard' | 'review'
+
+const el = id => document.getElementById(id);
+
+// ---- Word lookup & level totals ----
+const LEVELS = ['A1','A2','B1','B2'];
+const TOTAL_WORDS = WORDS.length;
+const levelTotals = {};
+LEVELS.forEach(l => { levelTotals[l] = WORDS.filter(w => w.level === l).length; });
+const wordIndexByLower = new Map(WORDS.map(w => [w.word.toLowerCase(), w.word]));
+function resolveWord(raw){
+  if (typeof raw !== 'string') return null;
+  return wordIndexByLower.get(raw.trim().toLowerCase()) || null;
+}
+function levelMatches(w){
+  return !w.level || selectedLevels.has(w.level);
+}
+
+// ---- Mastery store (persistent across sessions) ----
+const MASTERY_KEY = 'oxford3000_mastery_v1';
+function loadMastery(){
+  try {
+    const raw = localStorage.getItem(MASTERY_KEY);
+    if (!raw) return { words: {} };
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed.words !== 'object' || parsed.words === null) return { words: {} };
+    return parsed;
+  } catch (e) { return { words: {} }; }
+}
+function saveMastery(store){
+  try { localStorage.setItem(MASTERY_KEY, JSON.stringify(store)); } catch (e) { /* ignore */ }
+}
+function getStatus(word){
+  const store = loadMastery();
+  const entry = store.words[word];
+  return entry ? entry.status : 'new';
+}
+function getMeaning(word){
+  const store = loadMastery();
+  const entry = store.words[word];
+  return entry ? (entry.meaning || '') : '';
+}
+function getEntry(word){
+  const store = loadMastery();
+  return store.words[word] || null;
+}
+function countByStatus(status){
+  const store = loadMastery();
+  return Object.values(store.words).filter(e => e.status === status).length;
+}
+function practicingWords(){
+  const store = loadMastery();
+  return WORDS.filter(w => store.words[w.word] && store.words[w.word].status === 'practicing');
+}
+
+// ---- Gamification: badges & dashboard ----
+const BADGES = [
+  { pct: 10,  icon: '🌱', label: '入門' },
+  { pct: 25,  icon: '🌿', label: '漸入佳境' },
+  { pct: 50,  icon: '🌳', label: '過半' },
+  { pct: 75,  icon: '🏆', label: '接近全滿' },
+  { pct: 100, icon: '👑', label: '破關' },
+];
+function renderDashboard(){
+  const masteredCount = countByStatus('mastered');
+  const practicingCount = countByStatus('practicing');
+  const pct = TOTAL_WORDS ? Math.round((masteredCount / TOTAL_WORDS) * 100) : 0;
+
+  el('dashProgressLabel').textContent = `${masteredCount} / ${TOTAL_WORDS}（${pct}%）`;
+  el('dashProgressFill').style.width = `${pct}%`;
+
+  const levelRow = el('levelProgressRow');
+  levelRow.innerHTML = '';
+  LEVELS.forEach(l => {
+    const total = levelTotals[l] || 0;
+    const mastered = WORDS.filter(w => w.level === l && getStatus(w.word) === 'mastered').length;
+    const lp = total ? Math.round((mastered / total) * 100) : 0;
+    const div = document.createElement('div');
+    div.className = 'mini-level';
+    div.innerHTML = `<span class="lvl-name">${l}</span><div class="mini-bar"><div class="mini-fill" style="width:${lp}%"></div></div><span class="lvl-count">${mastered}/${total}</span>`;
+    levelRow.appendChild(div);
+  });
+
+  const badgeRow = el('badgeRow');
+  badgeRow.innerHTML = '';
+  BADGES.forEach(b => {
+    const earned = pct >= b.pct;
+    const chip = document.createElement('span');
+    chip.className = 'badge-chip' + (earned ? ' earned' : '');
+    chip.textContent = `${b.icon} ${b.label}`;
+    badgeRow.appendChild(chip);
+  });
+
+  el('fullClearBanner').classList.toggle('hidden', masteredCount < TOTAL_WORDS);
+
+  el('reinforceRow').classList.toggle('hidden', masteredCount === 0);
+  const reviewBtn = el('reviewBtn');
+  const flashcardBtn = el('flashcardBtn');
+  if (practicingCount > 0) {
+    reviewBtn.textContent = `🔁 複習測驗（${practicingCount} 個待複習）`;
+    flashcardBtn.textContent = `📇 閃卡複習（${practicingCount} 張）`;
+    reviewBtn.classList.remove('hidden');
+    flashcardBtn.classList.remove('hidden');
+  } else {
+    reviewBtn.classList.add('hidden');
+    flashcardBtn.classList.add('hidden');
+  }
+}
+
+function fireConfetti(){
+  const colors = ['#4f46e5','#7c3aed','#16a34a','#f59e0b','#dc2626','#0ea5e9'];
+  for (let i = 0; i < 90; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 4000);
+  }
+}
+
+function checkFullClear(previousMasteredCount){
+  const masteredCount = countByStatus('mastered');
+  if (masteredCount === TOTAL_WORDS && previousMasteredCount < TOTAL_WORDS) {
+    el('fullClearTotal').textContent = TOTAL_WORDS;
+    el('fullClearOverlay').classList.remove('hidden');
+    fireConfetti();
+  }
+}
+
+function showScreen(id){
+  ['setupScreen', 'quizScreen', 'resultScreen', 'flashcardScreen'].forEach(s => {
+    el(s).classList.toggle('hidden', s !== id);
+  });
+}
+
+function updatePoolInfo(){
+  const includeMastered = el('includeMasteredChk').checked;
+  const pool = WORDS.filter(w => levelMatches(w) && (includeMastered || getStatus(w.word) !== 'mastered'));
+  el('poolInfo').textContent = `目前符合條件的單字共 ${pool.length} 個。`;
+  renderDashboard();
+  return pool;
+}
+
+// ---- localStorage persistence (so mid-quiz progress survives refresh/close) ----
+function saveProgress(){
+  try {
+    const state = {
+      quizWords, answers, currentIndex, quizMode,
+      userName: el('userName').value,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) { /* storage unavailable or full - ignore */ }
+}
+
+function loadProgress(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    if (!state || !Array.isArray(state.quizWords) || state.quizWords.length === 0) return null;
+    return state;
+  } catch (e) { return null; }
+}
+
+function clearProgress(){
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+}
+
+function checkForSavedProgress(){
+  const state = loadProgress();
+  if (!state) return;
+  const answered = state.answers.filter(a => !a.skipped).length;
+  el('resumeProgress').textContent = `已答 ${answered} / ${state.quizWords.length} 題`;
+  el('resumeBanner').classList.remove('hidden');
+}
+
+el('resumeBtn').addEventListener('click', () => {
+  const state = loadProgress();
+  if (!state) return;
+  quizWords = state.quizWords;
+  answers = state.answers;
+  currentIndex = Math.min(state.currentIndex, quizWords.length - 1);
+  quizMode = state.quizMode || 'standard';
+  if (state.userName) el('userName').value = state.userName;
+
+  el('resumeBanner').classList.add('hidden');
+  showScreen('quizScreen');
+  updateQuizModeBadge();
+  renderQuestion();
+});
+
+el('discardResumeBtn').addEventListener('click', () => {
+  clearProgress();
+  el('resumeBanner').classList.add('hidden');
+  showToast('已清除上次的測驗紀錄');
+});
+
+checkForSavedProgress();
+
+// level chip toggles
+document.querySelectorAll('#levelChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const lvl = chip.dataset.level;
+    if (selectedLevels.has(lvl)) {
+      if (selectedLevels.size === 1) return; // keep at least one level
+      selectedLevels.delete(lvl);
+      chip.classList.remove('active');
+    } else {
+      selectedLevels.add(lvl);
+      chip.classList.add('active');
+    }
+    updatePoolInfo();
+  });
+});
+el('includeMasteredChk').addEventListener('change', updatePoolInfo);
+updatePoolInfo();
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function beginQuiz(pool, mode){
+  if (pool.length === 0) {
+    const msg = mode === 'review'
+      ? '目前沒有待複習的單字'
+      : '這個範圍內的單字都已經學會了！可以勾選「鞏固複習」或調整等級';
+    showToast(msg);
+    return;
+  }
+
+  const orderMode = el('orderMode').value;
+  if (orderMode === 'random') pool = shuffle(pool);
+
+  const countVal = el('questionCount').value;
+  const count = countVal === 'all' ? pool.length : Math.min(parseInt(countVal, 10), pool.length);
+  quizWords = pool.slice(0, count);
+  answers = quizWords.map(w => ({ word: w.word, level: w.level, answer: '', skipped: true }));
+  currentIndex = 0;
+  quizMode = mode;
+
+  clearProgress(); // starting a new quiz discards any previous in-progress record
+  saveProgress();
+
+  el('resumeBanner').classList.add('hidden');
+  showScreen('quizScreen');
+  updateQuizModeBadge();
+  renderQuestion();
+}
+
+function updateQuizModeBadge(){
+  el('quizModeBadge').classList.toggle('hidden', quizMode !== 'review');
+}
+
+el('startBtn').addEventListener('click', () => {
+  const includeMastered = el('includeMasteredChk').checked;
+  const pool = WORDS.filter(w => levelMatches(w) && (includeMastered || getStatus(w.word) !== 'mastered'));
+  beginQuiz(pool, 'standard');
+});
+
+el('reviewBtn').addEventListener('click', () => {
+  beginQuiz(practicingWords(), 'review');
+});
+
+el('flashcardBtn').addEventListener('click', () => {
+  openFlashcardScreen();
+});
+
+// ---- Flashcard screen ----
+let flashcardDeck = [];
+let flipIndex = 0;
+
+function openFlashcardScreen(){
+  flashcardDeck = practicingWords();
+  if (flashcardDeck.length === 0) { showToast('目前沒有待複習的單字'); return; }
+  flipIndex = 0;
+  el('flashcardCount').textContent = `（共 ${flashcardDeck.length} 張）`;
+  renderFlashcardList();
+  setFlashcardView('list');
+  showScreen('flashcardScreen');
+}
+
+function renderFlashcardList(){
+  const list = el('flashcardList');
+  list.innerHTML = '';
+  flashcardDeck.forEach(w => {
+    const meaning = getMeaning(w.word);
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    div.innerHTML = `<span class="rword">${escapeHtml(w.word)} <small style="color:#9ca3af;">(${w.level || '-'})</small></span><span class="rans">${meaning ? escapeHtml(meaning) : '（尚無正解紀錄）'}</span>`;
+    list.appendChild(div);
+  });
+}
+
+function setFlashcardView(mode){
+  const isList = mode === 'list';
+  el('flashcardListView').classList.toggle('hidden', !isList);
+  el('flashcardFlipView').classList.toggle('hidden', isList);
+  el('flashcardListModeBtn').classList.toggle('active', isList);
+  el('flashcardFlipModeBtn').classList.toggle('active', !isList);
+  if (!isList) renderFlipCard();
+}
+
+function setOptionalField(id, value){
+  const node = el(id);
+  if (value) { node.textContent = value; node.classList.remove('hidden'); }
+  else { node.textContent = ''; node.classList.add('hidden'); }
+}
+
+function renderFlipCard(){
+  const w = flashcardDeck[flipIndex];
+  const entry = getEntry(w.word);
+  el('flipCard').classList.remove('flipped');
+  el('flipWord').textContent = w.word;
+  el('flipMeaning').textContent = (entry && entry.meaning) || '（尚無正解紀錄）';
+  el('flipProgressText').textContent = `第 ${flipIndex + 1} / ${flashcardDeck.length} 張`;
+
+  setOptionalField('flipPos', entry && entry.partOfSpeech);
+
+  const exampleNode = el('flipExample');
+  if (entry && entry.example) {
+    exampleNode.innerHTML = `${escapeHtml(entry.example)}${entry.exampleZh ? `<span class="zh">${escapeHtml(entry.exampleZh)}</span>` : ''}`;
+    exampleNode.classList.remove('hidden');
+  } else {
+    exampleNode.innerHTML = '';
+    exampleNode.classList.add('hidden');
+  }
+
+  setOptionalField('flipMnemonic', entry && entry.mnemonic ? `💡 ${entry.mnemonic}` : '');
+  setOptionalField('flipRelated', entry && entry.related ? `🔗 ${entry.related}` : '');
+}
+
+el('flashcardListModeBtn').addEventListener('click', () => setFlashcardView('list'));
+el('flashcardFlipModeBtn').addEventListener('click', () => setFlashcardView('flip'));
+
+el('flipCard').addEventListener('click', () => {
+  el('flipCard').classList.toggle('flipped');
+});
+
+el('flipPrevBtn').addEventListener('click', () => {
+  flipIndex = (flipIndex - 1 + flashcardDeck.length) % flashcardDeck.length;
+  renderFlipCard();
+});
+el('flipNextBtn').addEventListener('click', () => {
+  flipIndex = (flipIndex + 1) % flashcardDeck.length;
+  renderFlipCard();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (el('flashcardScreen').classList.contains('hidden')) return;
+  if (el('flashcardFlipView').classList.contains('hidden')) return;
+  if (e.key === ' ') { e.preventDefault(); el('flipCard').classList.toggle('flipped'); }
+  else if (e.key === 'ArrowRight') { el('flipNextBtn').click(); }
+  else if (e.key === 'ArrowLeft') { el('flipPrevBtn').click(); }
+});
+
+el('startReviewFromFlashcardBtn').addEventListener('click', () => {
+  beginQuiz(practicingWords(), 'review');
+});
+el('backFromFlashcardBtn').addEventListener('click', () => {
+  showScreen('setupScreen');
+  updatePoolInfo();
+});
+el('closeFullClearBtn').addEventListener('click', () => {
+  el('fullClearOverlay').classList.add('hidden');
+});
+
+function renderQuestion(){
+  const w = quizWords[currentIndex];
+  el('currentWord').textContent = w.word;
+  el('currentLevel').textContent = w.level || '';
+  el('answerInput').value = answers[currentIndex].skipped ? '' : answers[currentIndex].answer;
+  el('progressText').textContent = `第 ${currentIndex + 1} / ${quizWords.length} 題`;
+  el('progressFill').style.width = `${((currentIndex) / quizWords.length) * 100}%`;
+  el('prevBtn').disabled = currentIndex === 0;
+  el('nextBtn').textContent = currentIndex === quizWords.length - 1 ? '完成測驗 →' : '下一題 →';
+  setTimeout(() => el('answerInput').focus(), 30);
+}
+
+function saveCurrentAnswer(){
+  const val = el('answerInput').value.trim();
+  answers[currentIndex].answer = val;
+  answers[currentIndex].skipped = val.length === 0;
+  saveProgress();
+}
+
+el('answerInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); el('nextBtn').click(); }
+  else if (e.key === 'Escape') { e.preventDefault(); clearAnswerInput(); }
+});
+
+function clearAnswerInput(){
+  el('answerInput').value = '';
+  el('answerInput').focus();
+  saveCurrentAnswer();
+}
+el('clearAnswerBtn').addEventListener('click', clearAnswerInput);
+
+// ---- Voice input (Web Speech API) ----
+const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null;
+let listening = false;
+
+if (SpeechRecognitionCtor) {
+  el('micBtn').classList.remove('hidden');
+  recognizer = new SpeechRecognitionCtor();
+  recognizer.lang = 'zh-TW';
+  recognizer.interimResults = false;
+  recognizer.maxAlternatives = 1;
+
+  recognizer.addEventListener('result', (e) => {
+    const transcript = e.results[0][0].transcript.trim();
+    el('answerInput').value = transcript;
+    saveCurrentAnswer();
+  });
+  recognizer.addEventListener('end', () => {
+    listening = false;
+    el('micBtn').classList.remove('listening');
+  });
+  recognizer.addEventListener('error', () => {
+    listening = false;
+    el('micBtn').classList.remove('listening');
+    showToast('語音辨識失敗，請再試一次');
+  });
+
+  el('micBtn').addEventListener('click', () => {
+    if (listening) {
+      recognizer.stop();
+      return;
+    }
+    listening = true;
+    el('micBtn').classList.add('listening');
+    try { recognizer.start(); } catch (e) { listening = false; el('micBtn').classList.remove('listening'); }
+  });
+}
+
+el('nextBtn').addEventListener('click', () => {
+  saveCurrentAnswer();
+  if (currentIndex < quizWords.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  } else {
+    finishQuiz();
+  }
+});
+
+el('prevBtn').addEventListener('click', () => {
+  saveCurrentAnswer();
+  if (currentIndex > 0) { currentIndex--; renderQuestion(); }
+});
+
+el('skipBtn').addEventListener('click', () => {
+  answers[currentIndex].answer = '';
+  answers[currentIndex].skipped = true;
+  saveProgress();
+  if (currentIndex < quizWords.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  } else {
+    finishQuiz();
+  }
+});
+
+el('finishBtn').addEventListener('click', () => {
+  saveCurrentAnswer();
+  finishQuiz();
+});
+
+function finishQuiz(){
+  clearProgress(); // quiz completed - no need to keep the in-progress record
+  el('progressFill').style.width = '100%';
+  showScreen('resultScreen');
+  renderResult();
+}
+
+function renderResult(){
+  const total = answers.length;
+  const answered = answers.filter(a => !a.skipped).length;
+  const skipped = total - answered;
+  el('statTotal').textContent = total;
+  el('statAnswered').textContent = answered;
+  el('statSkipped').textContent = skipped;
+
+  const payload = {
+    quiz: 'Oxford 3000 Chinese Meaning Quiz',
+    generatedAt: new Date().toISOString(),
+    userName: el('userName').value.trim() || null,
+    totalQuestions: total,
+    answeredQuestions: answered,
+    skippedQuestions: skipped,
+    items: answers.map((a, i) => ({
+      no: i + 1,
+      word: a.word,
+      level: a.level,
+      userAnswer: a.answer,
+      skipped: a.skipped
+    }))
+  };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  el('resultJson').value = jsonStr;
+
+  const promptText =
+`你是一位英文老師，請批改以下 Oxford 3000 英文單字的中文意思測驗。
+JSON 中每一題包含 word（英文單字）、level（CEFR 等級）、userAnswer（使用者填寫的中文意思）、skipped（是否跳過）。
+
+請你：
+1. 針對每一題判斷 userAnswer 是否為該英文單字合理、正確（或部分正確）的中文意思，允許同義詞、相近詞義。
+2. 若 skipped 為 true 或 userAnswer 為空，視為未作答。
+3. 給出每一題的結果（正確 / 錯誤 / 未作答）以及正確答案（中文意思）。
+4. 統計「總題數」「答對題數」「答錯題數」「未作答題數」與「得分（答對題數 / 總題數 × 100，四捨五入到整數）」。
+5. 最後列出所有答錯與未作答的單字，附上正確中文意思，方便複習。
+6. 在你所有說明文字的最後，額外附上一段「機器可讀的評分結果」，放在單獨一個 \`\`\`json 程式碼區塊裡，內容是一個 JSON 陣列，務必包含測驗中的「每一題」（不能省略任何一題）。請針對每一題盡量附上簡短的英文例句、記憶小技巧與詞性/搭配資訊，讓答錯的單字變成閃卡後更容易記住，格式如下：
+
+\`\`\`json
+[
+  {
+    "word": "英文單字",
+    "result": "correct 或 wrong 或 unanswered",
+    "meaning": "這個單字最恰當的正確中文意思",
+    "partOfSpeech": "詞性，例如 n. / v. / adj.（不確定可留空字串）",
+    "example": "一句包含這個單字、簡短好記的英文例句",
+    "exampleZh": "上面例句的中文翻譯",
+    "mnemonic": "一句幫助記住這個單字的技巧，用諧音、字根拆解或畫面聯想都可以",
+    "related": "一個常見搭配片語或同義字（沒有的話留空字串）"
+  }
+]
+\`\`\`
+
+這段 JSON 我會直接貼回我的測驗網站解析，請確保它是合法 JSON、放在程式碼區塊中方便複製，且不要省略任何一題。
+
+以下是測驗結果 JSON：
+`;
+
+  el('aiPrompt').textContent = promptText;
+
+  const reviewList = el('reviewList');
+  reviewList.innerHTML = '';
+  answers.forEach((a, i) => {
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    const ansClass = a.skipped ? 'rans empty' : 'rans';
+    div.innerHTML = `<span class="rword">${i + 1}. ${escapeHtml(a.word)} <small style="color:#9ca3af;">(${a.level})</small></span><span class="${ansClass}">${a.skipped ? '未作答' : escapeHtml(a.answer)}</span>`;
+    reviewList.appendChild(div);
+  });
+
+  el('gradingImportInput').value = '';
+  el('importResultMsg').classList.add('hidden');
+
+  window.__lastPrompt = promptText;
+  window.__lastJson = jsonStr;
+}
+
+// ---- Grading result import ----
+function extractGradingJson(raw){
+  const fenceRe = /```(?:json)?\s*([\s\S]*?)```/g;
+  let match;
+  let candidate = null;
+  while ((match = fenceRe.exec(raw)) !== null) {
+    try {
+      const parsed = JSON.parse(match[1]);
+      if (Array.isArray(parsed)) candidate = parsed; // keep the last array-shaped fenced block
+    } catch (e) { /* not valid JSON in this fence, skip */ }
+  }
+  if (candidate) return candidate;
+
+  const first = raw.indexOf('[');
+  const last = raw.lastIndexOf(']');
+  if (first !== -1 && last > first) {
+    try {
+      const parsed = JSON.parse(raw.slice(first, last + 1));
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) { /* fall through */ }
+  }
+  return null;
+}
+
+function applyGradingResults(items){
+  const store = loadMastery();
+  const previousMastered = countByStatus('mastered');
+  let masteredNow = 0, practicingNow = 0, unknown = 0;
+
+  const str = v => typeof v === 'string' ? v.trim() : '';
+
+  items.forEach(item => {
+    if (!item || typeof item !== 'object') { unknown++; return; }
+    const canonical = resolveWord(item.word);
+    if (!canonical) { unknown++; return; }
+    const result = String(item.result || '').trim().toLowerCase();
+    const prev = store.words[canonical] || {};
+
+    const enriched = {
+      meaning: str(item.meaning) || prev.meaning || '',
+      partOfSpeech: str(item.partOfSpeech) || prev.partOfSpeech || '',
+      example: str(item.example) || prev.example || '',
+      exampleZh: str(item.exampleZh) || prev.exampleZh || '',
+      mnemonic: str(item.mnemonic) || prev.mnemonic || '',
+      related: str(item.related) || prev.related || '',
+    };
+
+    if (result === 'correct') {
+      store.words[canonical] = { status: 'mastered', ...enriched, updatedAt: new Date().toISOString() };
+      masteredNow++;
+    } else if (result === 'wrong' || result === 'unanswered') {
+      store.words[canonical] = { status: 'practicing', ...enriched, updatedAt: new Date().toISOString() };
+      practicingNow++;
+    } else {
+      unknown++;
+    }
+  });
+
+  saveMastery(store);
+  renderDashboard();
+  checkFullClear(previousMastered);
+
+  return { masteredNow, practicingNow, unknown, total: items.length };
+}
+
+el('importGradingBtn').addEventListener('click', () => {
+  const raw = el('gradingImportInput').value.trim();
+  const msg = el('importResultMsg');
+  msg.classList.remove('hidden');
+  if (!raw) { msg.textContent = '請先貼上 AI 的評分回覆。'; return; }
+
+  const items = extractGradingJson(raw);
+  if (!items) {
+    msg.textContent = '無法解析評分結果，請確認貼上的內容包含完整的 ```json 評分陣列。';
+    return;
+  }
+
+  const result = applyGradingResults(items);
+  msg.textContent = `已匯入 ${result.total} 筆結果：${result.masteredNow} 個學會、${result.practicingNow} 個待複習${result.unknown ? `，${result.unknown} 筆無法辨識已略過` : ''}。`;
+  showToast('評分結果已匯入');
+});
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function showToast(msg){
+  const t = el('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+async function copyText(text){
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e2) {}
+    document.body.removeChild(ta);
+    return true;
+  }
+}
+
+el('copyJsonBtn').addEventListener('click', async () => {
+  await copyText(el('resultJson').value);
+  showToast('已複製 JSON');
+});
+
+el('copyPromptBtn').addEventListener('click', async () => {
+  await copyText(window.__lastPrompt || '');
+  showToast('已複製 Prompt');
+});
+
+el('copyAllBtn').addEventListener('click', async () => {
+  await copyText((window.__lastPrompt || '') + '\n' + (window.__lastJson || ''));
+  showToast('已複製 Prompt + JSON');
+});
+
+el('downloadJsonBtn').addEventListener('click', () => {
+  const blob = new Blob([el('resultJson').value], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  a.href = url;
+  a.download = `oxford3000_quiz_result_${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+el('restartBtn').addEventListener('click', () => {
+  clearProgress();
+  el('resumeBanner').classList.add('hidden');
+  showScreen('setupScreen');
+  updatePoolInfo();
+});
+</script>
+</body>
+</html>
