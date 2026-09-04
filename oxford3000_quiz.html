@@ -24,7 +24,7 @@
   }
   .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
   label{font-size:.9rem; color:var(--muted); display:block; margin-bottom:6px;}
-  select, input[type=number], input[type=text]{
+  select, input[type=number], input[type=text], input[type=password]{
     font-size:1rem; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
     background:#fff; color:var(--text); width:100%;
   }
@@ -100,7 +100,7 @@
 
   /* ---- Answer input with voice + quick clear ---- */
   .answer-row{display:flex; gap:8px; align-items:stretch;}
-  .answer-row .answer-input{flex:1; min-width:0;}
+  .answer-row .answer-input, .answer-row input[type=text], .answer-row input[type=password]{flex:1; min-width:0;}
   .icon-btn{
     flex:0 0 auto; width:52px; padding:0; font-size:1.3rem; display:flex; align-items:center;
     justify-content:center; border-radius:12px; min-height:44px;
@@ -278,12 +278,45 @@
 
     <div class="row" style="margin:16px 0 4px; align-items:center; justify-content:space-between;">
       <span class="sub" style="margin:0;">進度備份（可匯出後在其他裝置/瀏覽器匯入還原）</span>
-      <div class="actions" style="margin:0;">
+      <div class="actions" style="margin:0; align-items:center;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; margin:0; font-size:.85rem; font-weight:400;">
+          <input type="checkbox" id="exportIncludeGeminiKeyChk">
+          包含 API Key
+        </label>
         <button type="button" class="secondary" id="exportProgressBtn">📤 匯出進度</button>
         <button type="button" class="secondary" id="importProgressBtn">📥 匯入進度</button>
         <input type="file" id="importProgressFile" accept="application/json,.json" class="hidden" aria-label="匯入進度檔案">
       </div>
     </div>
+
+    <details style="margin:16px 0 4px;">
+      <summary style="cursor:pointer; font-weight:600; color:var(--muted); font-size:.9rem;">⚙️ Gemini API 設定（選填，設定後可在測驗結束時一鍵自動評分）</summary>
+      <div style="margin-top:12px;">
+        <p class="sub" style="margin:0 0 12px;">⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
+        <div class="row">
+          <div class="field">
+            <label>Gemini API Key</label>
+            <div class="answer-row">
+              <input type="password" id="geminiApiKey" placeholder="貼上你的 Gemini API Key" autocomplete="off">
+              <button type="button" class="icon-btn secondary" id="toggleKeyVisibilityBtn" title="顯示/隱藏金鑰">👁️</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Model ID</label>
+            <input type="text" id="geminiModelId" placeholder="例如：gemini-2.5-flash" list="geminiModelSuggestions">
+            <datalist id="geminiModelSuggestions">
+              <option value="gemini-2.5-flash">
+              <option value="gemini-2.5-flash-lite">
+              <option value="gemini-2.5-pro">
+            </datalist>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px; align-items:center;">
+          <button type="button" class="secondary" id="testGeminiBtn">🔌 測試連線</button>
+          <span class="sub" id="geminiTestResult" style="margin:0;"></span>
+        </div>
+      </div>
+    </details>
 
     <div class="row hidden" id="reinforceRow" style="margin:16px 0 4px;">
       <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
@@ -336,6 +369,17 @@
       <div class="stat"><b id="statTotal">0</b>總題數</div>
       <div class="stat"><b id="statAnswered">0</b>已作答</div>
       <div class="stat"><b id="statSkipped">0</b>跳過</div>
+    </div>
+
+    <div class="card" id="geminiGradeBox" style="background:#f5f3ff; border-color:var(--accent); padding:16px; margin-bottom:18px;">
+      <div class="row" style="justify-content:space-between; align-items:center; gap:12px;">
+        <p class="sub" style="margin:0;">🔮 直接呼叫你設定好的 Gemini API 評分，結果會立即更新學習進度與閃卡。</p>
+        <button type="button" id="geminiGradeBtn" disabled title="尚未設定 Gemini API，請先到上方「Gemini API 設定」填寫">🔮 使用 Gemini 自動評分</button>
+      </div>
+      <p class="sub hidden" id="geminiGradeStatus" style="margin:10px 0 0;"></p>
+      <div class="actions hidden" id="geminiGradeActions" style="margin-top:10px;">
+        <button type="button" class="secondary" id="goToFlashcardsAfterGradeBtn">📇 前往閃卡複習</button>
+      </div>
     </div>
 
     <p class="sub">以下 Prompt 已幫你寫好，複製 Prompt + JSON 貼給 AI（例如 Claude / ChatGPT），即可自動批改並給出分數與講解。</p>
@@ -459,6 +503,31 @@ function levelMatches(w){
 // ---- Mastery store (persistent across sessions) ----
 const MASTERY_KEY = 'oxford3000_mastery_v1';
 const NAME_KEY = 'oxford3000_username_v1';
+const GEMINI_KEY = 'oxford3000_gemini_settings_v1';
+
+// ---- Gemini API settings (stored locally; see docs/adr/0001-gemini-key-stored-client-side.md) ----
+function loadGeminiSettings(){
+  try {
+    const raw = localStorage.getItem(GEMINI_KEY);
+    if (!raw) return { apiKey: '', modelId: '' };
+    const parsed = JSON.parse(raw);
+    return {
+      apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey : '',
+      modelId: typeof parsed.modelId === 'string' ? parsed.modelId : ''
+    };
+  } catch (e) { return { apiKey: '', modelId: '' }; }
+}
+function saveGeminiSettings(settings){
+  try { localStorage.setItem(GEMINI_KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ }
+}
+function hasGeminiConfig(){
+  const s = loadGeminiSettings();
+  return !!(s.apiKey.trim() && s.modelId.trim());
+}
+function geminiModelUrl(modelId){
+  const model = modelId.trim().replace(/^models\//, '');
+  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}`;
+}
 function loadMastery(){
   try {
     const raw = localStorage.getItem(MASTERY_KEY);
@@ -649,6 +718,73 @@ try {
 } catch (e) { /* ignore */ }
 el('userName').addEventListener('input', () => {
   try { localStorage.setItem(NAME_KEY, el('userName').value); } catch (e) { /* ignore */ }
+});
+
+// ---- Gemini API settings UI ----
+function updateGeminiGradeBtnState(){
+  const btn = el('geminiGradeBtn');
+  if (!btn) return;
+  if (hasGeminiConfig()) {
+    btn.disabled = false;
+    btn.title = '';
+  } else {
+    btn.disabled = true;
+    btn.title = '尚未設定 Gemini API，請先到上方「Gemini API 設定」填寫';
+  }
+}
+
+(function initGeminiSettingsUI(){
+  const settings = loadGeminiSettings();
+  el('geminiApiKey').value = settings.apiKey;
+  el('geminiModelId').value = settings.modelId;
+  updateGeminiGradeBtnState();
+})();
+
+function saveGeminiFieldsFromUI(){
+  saveGeminiSettings({
+    apiKey: el('geminiApiKey').value.trim(),
+    modelId: el('geminiModelId').value.trim()
+  });
+  el('geminiTestResult').textContent = '';
+  updateGeminiGradeBtnState();
+}
+el('geminiApiKey').addEventListener('input', saveGeminiFieldsFromUI);
+el('geminiModelId').addEventListener('input', saveGeminiFieldsFromUI);
+
+el('toggleKeyVisibilityBtn').addEventListener('click', () => {
+  const input = el('geminiApiKey');
+  input.type = input.type === 'password' ? 'text' : 'password';
+});
+
+el('testGeminiBtn').addEventListener('click', async () => {
+  const { apiKey, modelId } = loadGeminiSettings();
+  const resultEl = el('geminiTestResult');
+  if (!apiKey || !modelId) {
+    resultEl.style.color = 'var(--bad)';
+    resultEl.textContent = '請先輸入 API Key 與 Model ID';
+    return;
+  }
+  const btn = el('testGeminiBtn');
+  btn.disabled = true;
+  resultEl.style.color = 'var(--muted)';
+  resultEl.textContent = '測試中…';
+  try {
+    const res = await fetch(`${geminiModelUrl(modelId)}?key=${encodeURIComponent(apiKey)}`);
+    if (res.ok) {
+      resultEl.style.color = 'var(--good)';
+      resultEl.textContent = '✅ 連線成功，設定沒問題';
+    } else {
+      const errData = await res.json().catch(() => null);
+      const message = (errData && errData.error && errData.error.message) || `HTTP ${res.status}`;
+      resultEl.style.color = 'var(--bad)';
+      resultEl.textContent = `❌ 連線失敗：${message}`;
+    }
+  } catch (e) {
+    resultEl.style.color = 'var(--bad)';
+    resultEl.textContent = '❌ 連線失敗：網路錯誤或被瀏覽器封鎖';
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 // level chip toggles
@@ -1034,9 +1170,151 @@ JSON 中每一題包含 word（英文單字）、level（CEFR 等級）、userAn
   el('gradingImportInput').value = '';
   el('importResultMsg').classList.add('hidden');
 
+  el('geminiGradeStatus').classList.add('hidden');
+  el('geminiGradeStatus').textContent = '';
+  el('geminiGradeActions').classList.add('hidden');
+  updateGeminiGradeBtnState();
+
   window.__lastPrompt = promptText;
   window.__lastJson = jsonStr;
 }
+
+// ---- Gemini auto-grading (calls the API directly; see docs/adr/0001-gemini-key-stored-client-side.md) ----
+const GEMINI_GRADING_SCHEMA = {
+  type: 'ARRAY',
+  items: {
+    type: 'OBJECT',
+    properties: {
+      word: { type: 'STRING' },
+      result: { type: 'STRING', enum: ['correct', 'wrong', 'unanswered'] },
+      meaning: { type: 'STRING' },
+      partOfSpeech: { type: 'STRING' },
+      phonetic: { type: 'STRING' },
+      soundAlike: { type: 'STRING' },
+      example: { type: 'STRING' },
+      exampleZh: { type: 'STRING' },
+      mnemonic: { type: 'STRING' },
+      related: { type: 'STRING' }
+    },
+    required: ['word', 'result', 'meaning']
+  }
+};
+
+function buildQuizItemsForGrading(){
+  return answers.map((a, i) => ({
+    no: i + 1,
+    word: a.word,
+    level: a.level,
+    userAnswer: a.answer,
+    skipped: a.skipped
+  }));
+}
+
+function buildGeminiGradingPrompt(items){
+  return `你是一位英文老師，請批改以下 Oxford 3000 英文單字的中文意思測驗。
+每一題包含 word（英文單字）、level（CEFR 等級）、userAnswer（使用者填寫的中文意思）、skipped（是否跳過）。
+
+請針對每一題判斷 userAnswer 是否為該單字合理、正確（或部分正確）的中文意思，允許同義詞、相近詞義；若 skipped 為 true 或 userAnswer 為空，視為未作答（unanswered）。
+請針對每一題盡量附上自然發音音標（phonetic）、中文空耳發音教學（soundAlike）、簡短好記的英文例句與中譯（example / exampleZh）、記憶技巧（mnemonic）、常見搭配或同義字（related；沒有可留空字串）、詞性（partOfSpeech；不確定可留空）。
+輸出必須包含測驗中的每一題，不能省略任何一題。
+
+測驗結果如下：
+${JSON.stringify(items, null, 2)}`;
+}
+
+function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function extractGeminiText(data){
+  const candidate = data && data.candidates && data.candidates[0];
+  const part = candidate && candidate.content && candidate.content.parts && candidate.content.parts[0];
+  return part && part.text;
+}
+
+function describeGeminiEmptyResponse(data){
+  const blockReason = data && data.promptFeedback && data.promptFeedback.blockReason;
+  if (blockReason) return `內容被安全機制擋下（${blockReason}）`;
+  const finishReason = data && data.candidates && data.candidates[0] && data.candidates[0].finishReason;
+  if (finishReason && finishReason !== 'STOP') return `Gemini 未完整回應（${finishReason}）`;
+  return 'Gemini 沒有回傳任何內容';
+}
+
+async function callGeminiForGrading(items){
+  const { apiKey, modelId } = loadGeminiSettings();
+  const requestBody = {
+    contents: [{ role: 'user', parts: [{ text: buildGeminiGradingPrompt(items) }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: GEMINI_GRADING_SCHEMA,
+      temperature: 0.2
+    }
+  };
+
+  const maxAttempts = 3; // 1 initial try + up to 2 retries on transient errors
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let res;
+    try {
+      res = await fetch(`${geminiModelUrl(modelId)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+    } catch (networkErr) {
+      if (attempt >= maxAttempts) throw new Error('網路錯誤，無法連線到 Gemini API');
+      await sleep(attempt * 1500);
+      continue;
+    }
+
+    if (res.ok) {
+      const data = await res.json();
+      const text = extractGeminiText(data);
+      if (!text) throw new Error(describeGeminiEmptyResponse(data));
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) throw new Error('Gemini 回傳的不是陣列格式');
+      return parsed;
+    }
+
+    const errData = await res.json().catch(() => null);
+    const status = errData && errData.error && errData.error.status;
+    const message = (errData && errData.error && errData.error.message) || `HTTP ${res.status}`;
+    const retryable = res.status === 429 || res.status === 503 || status === 'RESOURCE_EXHAUSTED' || status === 'UNAVAILABLE';
+
+    if (retryable && attempt < maxAttempts) {
+      await sleep(attempt * 1500);
+      continue;
+    }
+    throw new Error(message);
+  }
+  throw new Error('已達重試次數上限');
+}
+
+el('geminiGradeBtn').addEventListener('click', async () => {
+  if (!hasGeminiConfig()) return;
+  const btn = el('geminiGradeBtn');
+  const statusEl = el('geminiGradeStatus');
+  btn.disabled = true;
+  statusEl.classList.remove('hidden');
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = '🔮 正在呼叫 Gemini 評分中…';
+  el('geminiGradeActions').classList.add('hidden');
+
+  try {
+    const items = await callGeminiForGrading(buildQuizItemsForGrading());
+    const result = applyGradingResults(items);
+    statusEl.style.color = 'var(--good)';
+    statusEl.textContent = `✅ Gemini 評分完成：${result.masteredNow} 個學會、${result.practicingNow} 個待複習${result.unknown ? `，${result.unknown} 筆無法辨識已略過` : ''}，已更新學習進度與閃卡。`;
+    showToast('Gemini 評分完成');
+    if (result.practicingNow > 0) el('geminiGradeActions').classList.remove('hidden');
+  } catch (err) {
+    statusEl.style.color = 'var(--bad)';
+    statusEl.textContent = `❌ 自動評分失敗：${err.message || err}。你仍可以用下方「複製 Prompt / JSON」手動貼給其他 AI。`;
+  } finally {
+    updateGeminiGradeBtnState();
+  }
+});
+
+el('goToFlashcardsAfterGradeBtn').addEventListener('click', () => {
+  openFlashcardScreen();
+});
 
 // ---- Grading result import ----
 function extractGradingJson(raw){
@@ -1196,6 +1474,9 @@ el('exportProgressBtn').addEventListener('click', () => {
     mastery: loadMastery(),
     quizProgress: loadProgress()
   };
+  if (el('exportIncludeGeminiKeyChk').checked) {
+    data.geminiSettings = loadGeminiSettings();
+  }
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1231,6 +1512,16 @@ el('importProgressFile').addEventListener('change', (e) => {
       }
       if (data.quizProgress && Array.isArray(data.quizProgress.quizWords) && data.quizProgress.quizWords.length > 0) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data.quizProgress));
+      }
+      if (data.geminiSettings && typeof data.geminiSettings === 'object') {
+        const gs = {
+          apiKey: typeof data.geminiSettings.apiKey === 'string' ? data.geminiSettings.apiKey : '',
+          modelId: typeof data.geminiSettings.modelId === 'string' ? data.geminiSettings.modelId : ''
+        };
+        saveGeminiSettings(gs);
+        el('geminiApiKey').value = gs.apiKey;
+        el('geminiModelId').value = gs.modelId;
+        updateGeminiGradeBtnState();
       }
 
       updatePoolInfo();
