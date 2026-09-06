@@ -6,172 +6,218 @@
 <title>Oxford 3000 單字測驗</title>
 <style>
   :root{
-    --bg:#f6f7fb; --card:#ffffff; --text:#1f2430; --muted:#6b7280;
-    --accent:#4f46e5; --accent2:#7c3aed; --border:#e5e7eb; --good:#16a34a; --bad:#dc2626;
+    /* Typography */
+    --font-family:"Microsoft JhengHei","Trebuchet MS",sans-serif;
+    --font-size-xs:12px; --font-size-sm:13px; --font-size-md:14px; --font-size-lg:15px;
+    --font-size-xl:16px; --font-size-2xl:23px;
+    --font-size-base:15px; --line-height-base:24px; --font-weight-base:400;
+
+    /* Color */
+    --color-text-primary:#000000; --color-text-secondary:#493849; --color-text-tertiary:#68617c;
+    --color-text-inverse:#fff9df;
+    --color-surface-muted:#ffffff; --color-surface-raised:#bde4d7; --color-surface-strong:#8a6654;
+    --color-border-default:#34304d; --color-border-strong:#594147;
+    /* Extended semantic accents (kept within the brand's warm/mint hue family for AA contrast) */
+    --color-success:#2f6d4f; --color-danger:#8a3a3a; --color-warning:#8a6b2f;
+    --color-success-surface:#dcf0e6; --color-danger-surface:#f4dede; --color-warning-surface:#f4ecd8;
+
+    /* Spacing */
+    --space-1:1px; --space-2:3px; --space-3:9px; --space-4:10px; --space-5:11px; --space-6:12px;
+    --space-7:14px; --space-8:16px;
+
+    /* Radius / shadow / motion */
+    --radius-xs:6px; --radius-sm:12px; --radius-md:14px; --radius-lg:15px;
+    --shadow-1:2px 3px 0px 0px rgb(215,204,217);
+    --shadow-2:0px 4px 0px 0px rgb(89,65,71);
+    --shadow-3:0px 3px 0px 0px rgb(89,65,71);
+    --motion-instant:120ms; --motion-fast:180ms;
   }
   *{box-sizing:border-box;}
   body{
-    margin:0; font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif;
-    background:linear-gradient(135deg,#eef1fb,#f9f5ff); color:var(--text); min-height:100vh;
+    margin:0; font-family:var(--font-family); font-size:var(--font-size-base);
+    line-height:var(--line-height-base); font-weight:var(--font-weight-base);
+    background:linear-gradient(135deg,rgba(189,228,215,.4),rgba(255,249,223,.55));
+    color:var(--color-text-primary); min-height:100vh;
     display:flex; justify-content:center; padding:32px 16px;
   }
   .wrap{width:100%; max-width:760px;}
-  h1{font-size:1.6rem; margin:0 0 4px;}
-  .sub{color:var(--muted); margin:0 0 24px; font-size:.95rem;}
+  h1{font-size:1.6rem; margin:0 0 4px; color:var(--color-text-primary);}
+  h2, h3{color:var(--color-text-primary);}
+  .sub{color:var(--color-text-tertiary); margin:0 0 24px; font-size:var(--font-size-md);}
   .card{
-    background:var(--card); border:1px solid var(--border); border-radius:16px;
-    padding:28px; box-shadow:0 4px 24px rgba(30,20,80,.06); margin-bottom:20px;
+    background:var(--color-surface-muted); border:2px solid var(--color-border-default);
+    border-radius:var(--radius-lg); padding:28px; box-shadow:var(--shadow-2); margin-bottom:20px;
   }
-  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
-  label{font-size:.9rem; color:var(--muted); display:block; margin-bottom:6px;}
+  .row{display:flex; gap:var(--space-6); flex-wrap:wrap; align-items:center;}
+  label{font-size:var(--font-size-sm); color:var(--color-text-secondary); display:block; margin-bottom:6px;}
   select, input[type=number], input[type=text], input[type=password]{
-    font-size:1rem; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
-    background:#fff; color:var(--text); width:100%;
+    font-family:var(--font-family); font-size:var(--font-size-lg); padding:10px 12px;
+    border-radius:var(--radius-sm); border:2px solid var(--color-border-default);
+    background:var(--color-surface-muted); color:var(--color-text-primary); width:100%;
+    transition:border-color var(--motion-fast), box-shadow var(--motion-fast);
   }
+  select:hover, input[type=number]:hover, input[type=text]:hover, input[type=password]:hover{
+    border-color:var(--color-border-strong);
+  }
+  select:focus-visible, input[type=number]:focus-visible, input[type=text]:focus-visible, input[type=password]:focus-visible{
+    outline:3px solid var(--color-surface-strong); outline-offset:1px; border-color:var(--color-border-strong);
+  }
+  select:disabled, input:disabled{opacity:.5; cursor:not-allowed;}
   .field{flex:1; min-width:140px;}
   .levels{display:flex; gap:10px; flex-wrap:wrap;}
   .chip{
-    border:1px solid var(--border); border-radius:999px; padding:8px 16px; cursor:pointer;
-    font-size:.9rem; user-select:none; background:#fff; transition:.15s;
+    border:2px solid var(--color-border-default); border-radius:999px; padding:8px 16px; cursor:pointer;
+    font-size:var(--font-size-md); user-select:none; background:var(--color-surface-muted);
+    color:var(--color-text-secondary); transition:background var(--motion-fast), color var(--motion-fast);
   }
-  .chip.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .chip:hover{border-color:var(--color-border-strong);}
+  .chip:focus-visible{outline:3px solid var(--color-surface-strong); outline-offset:1px;}
+  .chip.active{background:var(--color-surface-raised); border-color:var(--color-border-default); color:var(--color-text-primary); font-weight:600;}
   button{
-    font-size:1rem; padding:12px 20px; border-radius:10px; border:none; cursor:pointer;
-    background:var(--accent); color:#fff; font-weight:600; transition:.15s;
+    font-family:var(--font-family); font-size:var(--font-size-lg); padding:12px 20px;
+    border-radius:var(--radius-sm); border:2px solid var(--color-border-strong); cursor:pointer;
+    background:var(--color-surface-strong); color:var(--color-text-inverse); font-weight:600;
+    box-shadow:var(--shadow-3); transition:transform var(--motion-instant), box-shadow var(--motion-instant), background var(--motion-fast);
   }
-  button:hover{background:var(--accent2);}
-  button.secondary{background:#fff; color:var(--accent); border:1px solid var(--accent);}
-  button.secondary:hover{background:#f2effe;}
-  button:disabled{opacity:.5; cursor:not-allowed;}
+  button:hover{transform:translateY(-2px); box-shadow:0px 5px 0px 0px rgb(89,65,71);}
+  button:active{transform:translateY(1px); box-shadow:0px 1px 0px 0px rgb(89,65,71);}
+  button:focus-visible{outline:3px solid var(--color-border-default); outline-offset:2px;}
+  button.secondary{background:var(--color-surface-muted); color:var(--color-surface-strong); border:2px solid var(--color-border-strong); box-shadow:var(--shadow-1);}
+  button.secondary:hover{background:var(--color-surface-raised);}
+  button:disabled{opacity:.5; cursor:not-allowed; transform:none; box-shadow:none;}
   .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;}
   .hidden{display:none !important;}
 
-  .progress-bar{height:8px; background:#eee; border-radius:99px; overflow:hidden; margin-bottom:20px;}
-  .progress-fill{height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0%; transition:width .2s;}
-  .progress-text{font-size:.85rem; color:var(--muted); margin-bottom:6px;}
+  .progress-bar{height:8px; background:var(--color-surface-muted); border:1px solid var(--color-border-default); border-radius:99px; overflow:hidden; margin-bottom:20px;}
+  .progress-fill{height:100%; background:var(--color-surface-strong); width:0%; transition:width .2s;}
+  .progress-text{font-size:var(--font-size-sm); color:var(--color-text-tertiary); margin-bottom:6px;}
 
   .word-display{text-align:center; margin:28px 0;}
-  .word{font-size:2.6rem; font-weight:700; letter-spacing:.5px;}
+  .word{font-size:2.6rem; font-weight:700; letter-spacing:.5px; color:var(--color-text-primary);}
   .level-badge{
-    display:inline-block; font-size:.75rem; padding:3px 10px; border-radius:999px;
-    background:#ede9fe; color:#5b21b6; margin-top:8px; font-weight:600;
+    display:inline-block; font-size:var(--font-size-xs); padding:3px 10px; border-radius:999px;
+    background:var(--color-surface-raised); color:var(--color-text-secondary); margin-top:8px; font-weight:600;
   }
   .answer-input{
     font-size:1.3rem; padding:14px 16px; text-align:center; width:100%;
-    border-radius:12px; border:2px solid var(--border);
+    border-radius:var(--radius-sm); border:2px solid var(--color-border-default);
   }
-  .answer-input:focus{outline:none; border-color:var(--accent);}
+  .answer-input:focus-visible{outline:3px solid var(--color-surface-strong); outline-offset:1px; border-color:var(--color-border-strong);}
   .nav-actions{display:flex; justify-content:space-between; gap:10px; margin-top:20px;}
   .nav-actions .mid{display:flex; gap:10px; flex:1; justify-content:center;}
 
   textarea{
-    width:100%; min-height:220px; font-family:ui-monospace,Consolas,monospace; font-size:.85rem;
-    padding:12px; border-radius:10px; border:1px solid var(--border); background:#f9fafb; color:#111;
+    width:100%; min-height:220px; font-family:ui-monospace,Consolas,monospace; font-size:var(--font-size-sm);
+    padding:12px; border-radius:var(--radius-sm); border:2px solid var(--color-border-default);
+    background:var(--color-surface-muted); color:var(--color-text-primary);
     resize:vertical;
   }
-  .review-list{max-height:340px; overflow-y:auto; border:1px solid var(--border); border-radius:10px;}
+  textarea:focus-visible{outline:3px solid var(--color-surface-strong); outline-offset:1px;}
+  .review-list{max-height:340px; overflow-y:auto; border:2px solid var(--color-border-default); border-radius:var(--radius-sm);}
   .review-item{
     display:flex; justify-content:space-between; gap:10px; padding:10px 14px;
-    border-bottom:1px solid var(--border); font-size:.92rem;
+    border-bottom:1px solid var(--color-border-default); font-size:var(--font-size-md);
   }
   .review-item:last-child{border-bottom:none;}
-  .review-item .rword{font-weight:600;}
-  .review-item .rans{color:var(--muted);}
-  .review-item .rans.empty{color:#d97706; font-style:italic;}
+  .review-item .rword{font-weight:600; color:var(--color-text-primary);}
+  .review-item .rans{color:var(--color-text-tertiary);}
+  .review-item .rans.empty{color:var(--color-warning); font-style:italic;}
   .list-speak-btn{
     flex:0 0 auto; background:none; border:none; cursor:pointer; font-size:1rem; padding:2px 8px;
-    color:var(--accent); border-radius:8px;
+    color:var(--color-surface-strong); border-radius:var(--radius-xs);
   }
-  .list-speak-btn:hover{color:var(--accent2); background:#f2effe;}
+  .list-speak-btn:hover{color:var(--color-border-strong); background:var(--color-surface-raised);}
+  .list-speak-btn:focus-visible{outline:2px solid var(--color-surface-strong); outline-offset:1px;}
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background:#111827; color:#fff; padding:10px 18px; border-radius:10px; font-size:.9rem;
+    background:var(--color-border-default); color:var(--color-text-inverse); padding:10px 18px;
+    border-radius:var(--radius-sm); font-size:var(--font-size-md);
     opacity:0; pointer-events:none; transition:.25s;
   }
   .toast.show{opacity:1;}
   .stat-row{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px;}
-  .stat{background:#f3f4f6; border-radius:10px; padding:10px 16px; font-size:.85rem;}
-  .stat b{font-size:1.1rem; display:block; color:var(--accent);}
+  .stat{background:var(--color-surface-raised); border-radius:var(--radius-sm); padding:10px 16px; font-size:var(--font-size-sm); color:var(--color-text-secondary);}
+  .stat b{font-size:1.1rem; display:block; color:var(--color-text-primary);}
   .prompt-box{
-    background:#111827; color:#e5e7eb; padding:14px; border-radius:10px; font-size:.82rem;
+    background:var(--color-border-default); color:var(--color-text-inverse); padding:14px; border-radius:var(--radius-sm); font-size:var(--font-size-xs);
     white-space:pre-wrap; font-family:ui-monospace,Consolas,monospace; margin-bottom:14px;
   }
-  kbd{background:#eee; border-radius:4px; padding:1px 6px; font-size:.8rem;}
+  kbd{background:var(--color-surface-raised); border-radius:4px; padding:1px 6px; font-size:var(--font-size-xs); color:var(--color-text-secondary);}
 
   /* ---- Answer input with voice + quick clear ---- */
   .answer-row{display:flex; gap:8px; align-items:stretch;}
   .answer-row .answer-input, .answer-row input[type=text], .answer-row input[type=password]{flex:1; min-width:0;}
   .icon-btn{
     flex:0 0 auto; width:52px; padding:0; font-size:1.3rem; display:flex; align-items:center;
-    justify-content:center; border-radius:12px; min-height:44px;
+    justify-content:center; border-radius:var(--radius-sm); min-height:44px;
   }
-  .icon-btn.mic-btn{background:#fff; color:var(--accent); border:2px solid var(--border);}
-  .icon-btn.mic-btn.listening{background:var(--bad); border-color:var(--bad); color:#fff; animation:pulse 1s infinite;}
-  .icon-btn.clear-btn{background:#fff; color:var(--muted); border:2px solid var(--border);}
-  .icon-btn.clear-btn:hover{color:var(--bad); border-color:var(--bad);}
+  .icon-btn.mic-btn{background:var(--color-surface-muted); color:var(--color-surface-strong); border:2px solid var(--color-border-default);}
+  .icon-btn.mic-btn.listening{background:var(--color-danger); border-color:var(--color-danger); color:var(--color-text-inverse); animation:pulse 1s infinite;}
+  .icon-btn.clear-btn{background:var(--color-surface-muted); color:var(--color-text-tertiary); border:2px solid var(--color-border-default);}
+  .icon-btn.clear-btn:hover{color:var(--color-danger); border-color:var(--color-danger);}
   @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.6;}}
   .quiz-mode-badge{
-    display:inline-block; font-size:.75rem; padding:3px 10px; border-radius:999px;
-    background:#fee2e2; color:#b91c1c; font-weight:600; margin-bottom:10px;
+    display:inline-block; font-size:var(--font-size-xs); padding:3px 10px; border-radius:999px;
+    background:var(--color-danger-surface); color:var(--color-danger); font-weight:600; margin-bottom:10px;
   }
 
   /* ---- Dashboard / gamification ---- */
   .dashboard{margin-bottom:6px;}
   .dash-total{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
-  .dash-total b{font-size:1.05rem; color:var(--accent);}
+  .dash-total b{font-size:1.05rem; color:var(--color-surface-strong);}
   .level-progress-row{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px;}
-  .mini-level{background:#f3f4f6; border-radius:10px; padding:8px 10px; font-size:.75rem; text-align:center;}
-  .mini-level .lvl-name{font-weight:700; color:var(--text); display:block; margin-bottom:4px;}
-  .mini-level .mini-bar{height:6px; background:#e5e7eb; border-radius:99px; overflow:hidden; margin:4px 0;}
-  .mini-level .mini-fill{height:100%; background:var(--accent);}
-  .mini-level .lvl-count{color:var(--muted);}
+  .mini-level{background:var(--color-surface-raised); border-radius:var(--radius-sm); padding:8px 10px; font-size:var(--font-size-xs); text-align:center;}
+  .mini-level .lvl-name{font-weight:700; color:var(--color-text-primary); display:block; margin-bottom:4px;}
+  .mini-level .mini-bar{height:6px; background:var(--color-surface-muted); border-radius:99px; overflow:hidden; margin:4px 0;}
+  .mini-level .mini-fill{height:100%; background:var(--color-surface-strong);}
+  .mini-level .lvl-count{color:var(--color-text-secondary);}
   .badge-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
   .badge-chip{
-    font-size:.78rem; padding:5px 12px; border-radius:999px; background:#f3f4f6; color:var(--muted);
-    border:1px solid var(--border);
+    font-size:var(--font-size-xs); padding:5px 12px; border-radius:999px; background:var(--color-surface-muted); color:var(--color-text-tertiary);
+    border:1px solid var(--color-border-default);
   }
-  .badge-chip.earned{background:#fef3c7; color:#92400e; border-color:#fbbf24; font-weight:600;}
+  .badge-chip.earned{background:var(--color-warning-surface); color:var(--color-warning); border-color:var(--color-warning); font-weight:600;}
   .full-clear-banner{
-    background:linear-gradient(135deg,#fde68a,#fca5a5); border-radius:14px; padding:16px; text-align:center;
-    font-weight:700; color:#7c2d12; margin-bottom:16px;
+    background:var(--color-surface-raised); border:2px solid var(--color-border-default); border-radius:var(--radius-md); padding:16px; text-align:center;
+    font-weight:700; color:var(--color-text-primary); margin-bottom:16px;
   }
 
   /* ---- Flashcards ---- */
   .flip-card{perspective:1200px; margin:24px auto; max-width:460px; width:100%; height:340px; cursor:pointer; position:relative;}
   .flip-card .speak-btn{
     position:absolute; top:10px; right:10px; z-index:5; width:44px; min-height:44px;
-    background:#fff; color:var(--accent); border:2px solid var(--border);
+    background:var(--color-surface-muted); color:var(--color-surface-strong); border:2px solid var(--color-border-default);
   }
-  .flip-card .speak-btn:hover{background:#f2effe;}
+  .flip-card .speak-btn:hover{background:var(--color-surface-raised);}
   .flip-card-inner{
     position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;
   }
   .flip-card.flipped .flip-card-inner{transform:rotateY(180deg);}
   .flip-card-front, .flip-card-back{
-    position:absolute; inset:0; backface-visibility:hidden; border-radius:16px; display:flex;
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-lg); display:flex;
     flex-direction:column; align-items:center; justify-content:center; gap:10px;
-    border:2px solid var(--border); background:#fff;
-    padding:20px; text-align:center; box-shadow:0 4px 20px rgba(30,20,80,.08); overflow-y:auto;
+    border:2px solid var(--color-border-default); background:var(--color-surface-muted);
+    padding:20px; text-align:center; box-shadow:var(--shadow-2); overflow-y:auto;
   }
-  .flip-card-back{transform:rotateY(180deg); background:#f5f3ff;}
+  .flip-card-back{transform:rotateY(180deg); background:var(--color-surface-raised);}
   .flip-pos{
-    font-size:.75rem; font-weight:600; color:#fff; background:var(--accent2);
+    font-size:var(--font-size-xs); font-weight:600; color:var(--color-text-inverse); background:var(--color-surface-strong);
     padding:3px 12px; border-radius:999px;
   }
-  .flip-example{font-size:.95rem; color:var(--text); line-height:1.5;}
-  .flip-example .zh{color:var(--muted); display:block; margin-top:2px; font-size:.85rem;}
+  .flip-example{font-size:var(--font-size-md); color:var(--color-text-primary); line-height:1.5;}
+  .flip-example .zh{color:var(--color-text-tertiary); display:block; margin-top:2px; font-size:var(--font-size-sm);}
   .flip-mnemonic{
-    font-size:.85rem; color:#6d28d9; background:#ede9fe; border-radius:10px; padding:8px 12px;
+    font-size:var(--font-size-sm); color:var(--color-text-secondary); background:var(--color-surface-muted); border:1px solid var(--color-border-default); border-radius:var(--radius-sm); padding:8px 12px;
     line-height:1.4;
   }
-  .flip-related{font-size:.8rem; color:var(--muted);}
-  .flip-phonetic{font-size:1rem; color:var(--accent); font-family:ui-monospace,Consolas,monospace;}
+  .flip-related{font-size:var(--font-size-sm); color:var(--color-text-tertiary);}
+  .flip-phonetic{font-size:1rem; color:var(--color-surface-strong); font-family:ui-monospace,Consolas,monospace;}
   .flip-soundalike{
-    font-size:.85rem; color:#b45309; background:#fef3c7; border-radius:10px; padding:8px 12px;
+    font-size:var(--font-size-sm); color:var(--color-warning); background:var(--color-warning-surface); border-radius:var(--radius-sm); padding:8px 12px;
     line-height:1.4;
   }
   .view-toggle{display:flex; gap:8px;}
-  .view-toggle button.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .view-toggle button.active{background:var(--color-surface-strong); color:var(--color-text-inverse); border-color:var(--color-border-strong);}
 
   /* ---- Confetti ---- */
   .confetti-piece{
@@ -182,11 +228,11 @@
     to{transform:translateY(110vh) rotate(540deg); opacity:0;}
   }
   .full-clear-overlay{
-    position:fixed; inset:0; background:rgba(17,24,39,.75); display:flex; align-items:center; justify-content:center;
+    position:fixed; inset:0; background:rgba(52,48,77,.75); display:flex; align-items:center; justify-content:center;
     z-index:9998; padding:20px;
   }
   .full-clear-modal{
-    background:#fff; border-radius:20px; padding:32px 24px; text-align:center; max-width:420px; width:100%;
+    background:var(--color-surface-muted); border:2px solid var(--color-border-default); border-radius:20px; padding:32px 24px; text-align:center; max-width:420px; width:100%;
   }
   .full-clear-modal h2{font-size:1.8rem; margin:0 0 10px;}
 
@@ -217,7 +263,7 @@
 
   <!-- SETUP SCREEN -->
   <div class="card" id="setupScreen">
-    <div class="card hidden" id="resumeBanner" style="background:#fef9e7; border-color:#fbbf24; padding:16px; margin-bottom:18px;">
+    <div class="card hidden" id="resumeBanner" style="background:var(--color-warning-surface); border-color:var(--color-warning); padding:16px; margin-bottom:18px;">
       <p style="margin:0 0 10px; font-size:.9rem;">偵測到上次有一份未完成的測驗（進度：<span id="resumeProgress"></span>），是否要繼續？</p>
       <div class="actions" style="margin-top:0;">
         <button id="resumeBtn">繼續上次測驗</button>
@@ -290,7 +336,7 @@
     </div>
 
     <details style="margin:16px 0 4px;">
-      <summary style="cursor:pointer; font-weight:600; color:var(--muted); font-size:.9rem;">⚙️ Gemini API 設定（選填，設定後可在測驗結束時一鍵自動評分）</summary>
+      <summary style="cursor:pointer; font-weight:600; color:var(--color-text-tertiary); font-size:.9rem;">⚙️ Gemini API 設定（選填，設定後可在測驗結束時一鍵自動評分）</summary>
       <div style="margin-top:12px;">
         <p class="sub" style="margin:0 0 12px;">⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
         <div class="row">
@@ -302,12 +348,12 @@
             </div>
           </div>
           <div class="field">
-            <label>Model ID</label>
-            <input type="text" id="geminiModelId" placeholder="例如：gemini-2.5-flash" list="geminiModelSuggestions">
+            <label for="geminiModelId">Model ID</label>
+            <input type="text" id="geminiModelId" placeholder="例如：gemini-2.5-flash（可輸入或從清單選擇）" list="geminiModelSuggestions" autocomplete="off">
             <datalist id="geminiModelSuggestions">
-              <option value="gemini-2.5-flash">
-              <option value="gemini-2.5-flash-lite">
-              <option value="gemini-2.5-pro">
+              <option value="gemini-3.7-flash">
+              <option value="gemini-3.5-flash">
+              <option value="gemini-3.5-flash-lite">
             </datalist>
           </div>
         </div>
@@ -371,7 +417,7 @@
       <div class="stat"><b id="statSkipped">0</b>跳過</div>
     </div>
 
-    <div class="card" id="geminiGradeBox" style="background:#f5f3ff; border-color:var(--accent); padding:16px; margin-bottom:18px;">
+    <div class="card" id="geminiGradeBox" style="background:var(--color-surface-raised); border-color:var(--color-border-default); padding:16px; margin-bottom:18px;">
       <div class="row" style="justify-content:space-between; align-items:center; gap:12px;">
         <p class="sub" style="margin:0;">🔮 直接呼叫你設定好的 Gemini API 評分，結果會立即更新學習進度與閃卡。</p>
         <button type="button" id="geminiGradeBtn" disabled title="尚未設定 Gemini API，請先到上方「Gemini API 設定」填寫">🔮 使用 Gemini 自動評分</button>
@@ -415,7 +461,7 @@
   <!-- FLASHCARD SCREEN -->
   <div class="card hidden" id="flashcardScreen">
     <div class="row" style="justify-content:space-between; align-items:center;">
-      <h2 style="margin:0;">📇 閃卡複習 <span id="flashcardCount" style="color:var(--muted); font-size:.9rem; font-weight:400;"></span></h2>
+      <h2 style="margin:0;">📇 閃卡複習 <span id="flashcardCount" style="color:var(--color-text-tertiary); font-size:.9rem; font-weight:400;"></span></h2>
       <div class="view-toggle">
         <button class="secondary active" id="flashcardListModeBtn">列表</button>
         <button class="secondary" id="flashcardFlipModeBtn">翻卡</button>
@@ -618,7 +664,7 @@ function renderDashboard(){
 }
 
 function fireConfetti(){
-  const colors = ['#4f46e5','#7c3aed','#16a34a','#f59e0b','#dc2626','#0ea5e9'];
+  const colors = ['#8a6654','#bde4d7','#493849','#8a6b2f','#8a3a3a','#68617c'];
   for (let i = 0; i < 90; i++) {
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
@@ -760,27 +806,27 @@ el('testGeminiBtn').addEventListener('click', async () => {
   const { apiKey, modelId } = loadGeminiSettings();
   const resultEl = el('geminiTestResult');
   if (!apiKey || !modelId) {
-    resultEl.style.color = 'var(--bad)';
+    resultEl.style.color = 'var(--color-danger)';
     resultEl.textContent = '請先輸入 API Key 與 Model ID';
     return;
   }
   const btn = el('testGeminiBtn');
   btn.disabled = true;
-  resultEl.style.color = 'var(--muted)';
+  resultEl.style.color = 'var(--color-text-tertiary)';
   resultEl.textContent = '測試中…';
   try {
     const res = await fetch(`${geminiModelUrl(modelId)}?key=${encodeURIComponent(apiKey)}`);
     if (res.ok) {
-      resultEl.style.color = 'var(--good)';
+      resultEl.style.color = 'var(--color-success)';
       resultEl.textContent = '✅ 連線成功，設定沒問題';
     } else {
       const errData = await res.json().catch(() => null);
       const message = (errData && errData.error && errData.error.message) || `HTTP ${res.status}`;
-      resultEl.style.color = 'var(--bad)';
+      resultEl.style.color = 'var(--color-danger)';
       resultEl.textContent = `❌ 連線失敗：${message}`;
     }
   } catch (e) {
-    resultEl.style.color = 'var(--bad)';
+    resultEl.style.color = 'var(--color-danger)';
     resultEl.textContent = '❌ 連線失敗：網路錯誤或被瀏覽器封鎖';
   } finally {
     btn.disabled = false;
@@ -881,7 +927,7 @@ function renderFlashcardList(){
     const meaning = getMeaning(w.word);
     const div = document.createElement('div');
     div.className = 'review-item';
-    div.innerHTML = `<span class="rword">${escapeHtml(w.word)} <small style="color:#9ca3af;">(${w.level || '-'})</small></span><span class="rans">${meaning ? escapeHtml(meaning) : '（尚無正解紀錄）'}</span><button type="button" class="list-speak-btn" data-word="${escapeHtml(w.word)}" title="播放發音">🔊</button>`;
+    div.innerHTML = `<span class="rword">${escapeHtml(w.word)} <small style="color:var(--color-text-tertiary);">(${w.level || '-'})</small></span><span class="rans">${meaning ? escapeHtml(meaning) : '（尚無正解紀錄）'}</span><button type="button" class="list-speak-btn" data-word="${escapeHtml(w.word)}" title="播放發音">🔊</button>`;
     list.appendChild(div);
   });
 }
@@ -1163,7 +1209,7 @@ JSON 中每一題包含 word（英文單字）、level（CEFR 等級）、userAn
     const div = document.createElement('div');
     div.className = 'review-item';
     const ansClass = a.skipped ? 'rans empty' : 'rans';
-    div.innerHTML = `<span class="rword">${i + 1}. ${escapeHtml(a.word)} <small style="color:#9ca3af;">(${a.level})</small></span><span class="${ansClass}">${a.skipped ? '未作答' : escapeHtml(a.answer)}</span>`;
+    div.innerHTML = `<span class="rword">${i + 1}. ${escapeHtml(a.word)} <small style="color:var(--color-text-tertiary);">(${a.level})</small></span><span class="${ansClass}">${a.skipped ? '未作答' : escapeHtml(a.answer)}</span>`;
     reviewList.appendChild(div);
   });
 
@@ -1293,19 +1339,19 @@ el('geminiGradeBtn').addEventListener('click', async () => {
   const statusEl = el('geminiGradeStatus');
   btn.disabled = true;
   statusEl.classList.remove('hidden');
-  statusEl.style.color = 'var(--muted)';
+  statusEl.style.color = 'var(--color-text-tertiary)';
   statusEl.textContent = '🔮 正在呼叫 Gemini 評分中…';
   el('geminiGradeActions').classList.add('hidden');
 
   try {
     const items = await callGeminiForGrading(buildQuizItemsForGrading());
     const result = applyGradingResults(items);
-    statusEl.style.color = 'var(--good)';
+    statusEl.style.color = 'var(--color-success)';
     statusEl.textContent = `✅ Gemini 評分完成：${result.masteredNow} 個學會、${result.practicingNow} 個待複習${result.unknown ? `，${result.unknown} 筆無法辨識已略過` : ''}，已更新學習進度與閃卡。`;
     showToast('Gemini 評分完成');
     if (result.practicingNow > 0) el('geminiGradeActions').classList.remove('hidden');
   } catch (err) {
-    statusEl.style.color = 'var(--bad)';
+    statusEl.style.color = 'var(--color-danger)';
     statusEl.textContent = `❌ 自動評分失敗：${err.message || err}。你仍可以用下方「複製 Prompt / JSON」手動貼給其他 AI。`;
   } finally {
     updateGeminiGradeBtnState();
