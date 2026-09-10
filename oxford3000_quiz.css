@@ -176,23 +176,34 @@
   }
 
   /* ---- Flashcards ---- */
-  .flip-card{perspective:1200px; margin:24px auto; max-width:460px; width:100%; height:340px; cursor:pointer; position:relative;}
-  .flip-card .speak-btn{
-    position:absolute; top:10px; right:10px; z-index:5; width:44px; min-height:44px;
-    background:var(--color-surface-muted); color:var(--color-surface-strong); border:2px solid var(--color-border-default);
-  }
-  .flip-card .speak-btn:hover{background:var(--color-surface-raised);}
+  .flip-card{margin:var(--space-8) auto; width:100%; min-width:0; position:relative; overflow-wrap:anywhere;}
   .flip-card-inner{
-    position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d;
+    position:relative; width:100%;
   }
-  .flip-card.flipped .flip-card-inner{transform:rotateY(180deg);}
   .flip-card-front, .flip-card-back{
-    position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-lg); display:flex;
-    flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    border-radius:var(--radius-lg); display:flex;
+    flex-direction:column; align-items:center; gap:var(--space-6);
     border:2px solid var(--color-border-default); background:var(--color-surface-muted);
-    padding:20px; text-align:center; box-shadow:var(--shadow-2); overflow-y:auto;
+    padding:var(--space-8); text-align:center; box-shadow:var(--shadow-2);
   }
-  .flip-card-back{transform:rotateY(180deg); background:var(--color-surface-raised);}
+  .flip-card-front{min-height:12rem; justify-content:center;}
+  .flip-card-back{background:var(--color-surface-raised);}
+  .flip-card-front>*,.flip-card-back>*{min-width:0; max-width:100%;}
+  .flip-card [hidden]{display:none !important;}
+  .flip-card .word{line-height:1.3;}
+  .flashcard-toolbar,.example-audio{display:flex; flex-wrap:wrap; gap:var(--space-6); margin-bottom:var(--space-8);}
+  #flashcardScreen button,#flashcardScreen summary{min-height:44px; white-space:normal; overflow-wrap:anywhere; max-width:100%;}
+  #flashcardScreen .row,.view-toggle{flex-wrap:wrap;}
+  #flashcardScreen .review-item>span{min-width:0; overflow-wrap:anywhere;}
+  .flip-example{width:100%; min-width:0; text-align:left;}
+  .example-block{padding:var(--space-6); background:var(--color-surface-muted); border-radius:var(--radius-sm); margin-bottom:var(--space-6);}
+  .example-block p{margin:var(--space-6) 0;}
+  .example-sentence{font-size:1.15rem; line-height:1.6;}
+  .example-context,.example-status{font-size:var(--font-size-sm); color:var(--color-text-secondary);}
+  .example-status{margin:0; width:100%;}
+  .flip-example summary{cursor:pointer; padding:var(--space-6) 0; color:var(--color-text-secondary);}
+  .flip-example summary:focus-visible{outline:2px solid var(--color-border-default);}
+  body{padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px)); padding-left:max(var(--space-8),env(safe-area-inset-left,0px)); padding-right:max(var(--space-8),env(safe-area-inset-right,0px));}
   .flip-pos{
     font-size:var(--font-size-xs); font-weight:600; color:var(--color-text-inverse); background:var(--color-surface-strong);
     padding:3px 12px; border-radius:999px;
@@ -260,7 +271,7 @@
 
   /* ---- RWD ---- */
   @media (max-width: 640px){
-    body{padding:16px 10px;}
+    body{padding:var(--space-8) max(var(--space-4),env(safe-area-inset-right,0px)) calc(var(--space-8) + env(safe-area-inset-bottom,0px)) max(var(--space-4),env(safe-area-inset-left,0px));}
     .card{padding:18px;}
     h1{font-size:1.3rem;}
     .word{font-size:2rem;}
@@ -275,5 +286,5 @@
     .settings-modal{padding:20px 16px;}
     .actions{gap:8px;}
     .actions button{flex:1; min-width:140px;}
-    .flip-card{height:300px;}
+    #flashcardScreen{padding:var(--space-6);}
   }

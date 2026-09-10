@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Oxford 3000 單字測驗</title>
 <link rel="stylesheet" href="oxford3000_quiz.css">
 </head>
@@ -175,24 +175,29 @@
     <div id="flashcardFlipView" class="hidden" style="margin-top:16px;">
       <div class="progress-text" id="flipProgressText"></div>
       <div class="flip-card" id="flipCard">
-        <button type="button" class="icon-btn speak-btn" id="flipSpeakBtn" title="播放發音">🔊</button>
+        <div class="flashcard-toolbar">
+          <button type="button" class="secondary" id="flipToggleBtn" aria-expanded="false" aria-controls="flipBack">顯示意思</button>
+          <button type="button" class="secondary" id="flipSpeakBtn" title="播放單字發音">🔊 單字</button>
+        </div>
         <div class="flip-card-inner">
           <div class="flip-card-front">
             <div class="word" id="flipWord">word</div>
             <div class="flip-phonetic hidden" id="flipPhoneticFront"></div>
           </div>
-          <div class="flip-card-back">
+          <div class="flip-card-back" id="flipBack" hidden>
             <div class="word" id="flipMeaning" style="font-size:1.6rem;">意思</div>
             <div class="flip-pos hidden" id="flipPos"></div>
             <div class="flip-phonetic hidden" id="flipPhonetic"></div>
             <div class="flip-soundalike hidden" id="flipSoundAlike"></div>
             <div class="flip-example hidden" id="flipExample"></div>
+            <button type="button" class="secondary" id="simplifyExampleBtn">換成更簡單的例句</button>
+            <p id="exampleUpdateStatus" class="example-status" role="status" aria-live="polite"></p>
             <div class="flip-mnemonic hidden" id="flipMnemonic"></div>
             <div class="flip-related hidden" id="flipRelated"></div>
           </div>
         </div>
       </div>
-      <p class="sub" style="text-align:center;">點卡片或按空白鍵翻面，按 🔊 或 <kbd>S</kbd> 鍵播放發音</p>
+      <p class="sub" style="text-align:center;">點卡片空白處或「顯示意思」翻面；空白鍵翻面，S 鍵播放單字。</p>
       <div class="nav-actions">
         <button class="secondary" id="flipPrevBtn">← 上一張</button>
         <button id="flipNextBtn">下一張 →</button>
