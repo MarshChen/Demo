@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>健康與自主神經、代謝管理指南</title>
+  <style>
+    :root {
+      --primary-color: #0f766e;
+      --primary-light: #ccfbf1;
+      --secondary-color: #0369a1;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #475569;
+      --border-color: #e2e8f0;
+      --accent-red: #ef4444;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 40px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f766e, #0369a1);
+      color: white;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    .nav-tabs {
+      display: flex;
+      overflow-x: auto;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 90px;
+      padding: 12px 8px;
+      border: none;
+      background: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+      background-color: var(--primary-light);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 600px) {
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+
+    .comparison-box {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fafafa;
+    }
+
+    .comparison-box h4 {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    /* Accordions */
+    .accordion {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      background: var(--card-bg);
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .accordion-content {
+      display: none;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.85rem;
+      color: var(--text-sub);
+    }
+
+    .accordion.open .accordion-content {
+      display: block;
+    }
+
+    .accordion-header::after {
+      content: '+';
+      font-size: 1.1rem;
+    }
+
+    .accordion.open .accordion-header::after {
+      content: '-';
+    }
+
+    /* Table Component */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Action Checklist Component */
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .checklist-item:last-child {
+      border-bottom: none;
+    }
+
+    .checklist-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      accent-color: var(--primary-color);
+      cursor: pointer;
+    }
+
+    .checklist-text {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+
+    .checklist-text strong {
+      display: block;
+      color: var(--text-main);
+    }
+
+    .checklist-text span {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .cp-tag {
+      background: #fef3c7;
+      color: #b45309;
+      font-weight: bold;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    .alert-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--secondary-color);
+      padding: 12px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+
+    .alert-box-warning {
+      background: #fffbeb;
+      border-left-color: var(--accent-amber);
+    }
+
+    .summary-card {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .summary-card h3 {
+      color: #047857;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>自主神經與代謝健康指南</h1>
+    <p>整合生理機制與日常行動計劃</p>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('tab1')">自律神經與皮質醇</button>
+    <button class="tab-btn" onclick="switchTab('tab2')">代謝與血管破除迷思</button>
+    <button class="tab-btn" onclick="switchTab('tab3')">行動指南</button>
+    <button class="tab-btn" onclick="switchTab('tab4')">總結與指標</button>
+  </nav>
+
+  <div class="container">
+
+    <!-- TAB 1: 自律神經 vs 副交感神經 & 皮質醇 -->
+    <div id="tab1" class="tab-content active">
+
+      <div class="card">
+        <div class="card-title">一、油門與煞車：自律神經機制</div>
+        <div class="grid-2">
+          <div class="comparison-box">
+            <h4><span class="badge badge-red">油門</span> 交感神經 (備戰)</h4>
+            <p style="font-size:0.85rem; color: var(--text-sub);">心跳加快、血壓升高、血糖上升、血液導向肌肉。</p>
+            <p style="font-size:0.75rem; color: #ef4444; margin-top:4px;">加壓因素：咖啡因、壓力、繁忙、夜間藍光</p>
+          </div>
+          <div class="comparison-box">
+            <h4><span class="badge badge-green">煞車</span> 副交感神經 (修復)</h4>
+            <p style="font-size:0.85rem; color: var(--text-sub);">心率下降、腸胃蠕動、身體修復與休息。</p>
+            <p style="font-size:0.75rem; color: #10b981; margin-top:4px;">夜間交感壓不下來 ➔ 入睡困難</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">自律神經失調可能症狀 (點擊展開)</div>
+        <div class="accordion" onclick="toggleAccordion(this)">
+          <div class="accordion-header">心血管與呼吸系統</div>
+          <div class="accordion-content">心悸、胸悶、血壓與心率忽高忽低、手腳冰冷或發麻；吸不到氣、常嘆氣、換氣過度。</div>
+        </div>
+        <div class="accordion" onclick="toggleAccordion(this)">
+          <div class="accordion-header">腸胃與睡眠品質</div>
+          <div class="accordion-content">脹氣、便祕與腹瀉交替、腸躁症、食慾異常；入睡困難、淺眠、半夜醒、早醒、睡再久仍累。</div>
+        </div>
+        <div class="accordion" onclick="toggleAccordion(this)">
+          <div class="accordion-header">神經情緒與其他</div>
+          <div class="accordion-content">頭痛、頭暈、耳鳴、肩頸僵硬；腦霧、注意力不集中、焦慮、易怒；盜汗、口乾、頻尿、女性經期紊亂。</div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-box-warning">
+        <strong>⚠️ 醫療提醒：</strong>「自律神經失調」為描述性說法而非正式診斷。症狀與甲狀腺異常、貧血、心律不整、憂鬱症重疊，影響生活應先就醫排除器質疾病。
+      </div>
+
+      <div class="card">
+        <div class="card-title">二、皮質醇 (Cortisol) 晝夜節律</div>
+        <ul style="padding-left:20px; font-size:0.85rem; color:var(--text-sub);">
+          <li><strong>正確生理節律：</strong>起床後約 30 分鐘衝至最高峰（CAR 覺醒反應），整天緩慢下降，半夜降至最低。</li>
+          <li><strong>慢性壓力型態：</strong>早上該高時起不來（曲線扁平），晚上該低時高居不下（導致失眠）。</li>
+          <li><strong>檢測關鍵：</strong>單次抽血意義有限，需透過唾液四點檢測評估全天曲線形狀。</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: 代謝、血管與胰島素 -->
+    <div id="tab2" class="tab-content">
+
+      <div class="card">
+        <div class="card-title">三、肌肉 ➔ 血糖 ➔ 脂肪肝 ➔ 血管斑塊</div>
+        <div class="alert-box">
+          <strong>骨骼肌關鍵角色：</strong>肌肉是全身最大葡萄糖處理器，餐後 70–80% 血糖由肌肉吸收。肌肉少 ➔ 血糖無處去 ➔ 胰島素必須拉高代償。
+        </div>
+        
+        <h4 style="font-size:0.9rem; margin-top:12px; margin-bottom:8px;">⚠️ 生理機制修正說明：</h4>
+        <div class="accordion open" onclick="toggleAccordion(this)">
+          <div class="accordion-header">1. 脂肪肝成因修正</div>
+          <div class="accordion-content">非單純「血糖跑去肝臟」，主因是熱量過剩 + 果糖（含糖飲料）+ 胰島素阻抗，肝臟將過剩原料轉成脂肪。</div>
+        </div>
+        <div class="accordion" onclick="toggleAccordion(this)">
+          <div class="accordion-header">2. LDL / HDL 正確角色</div>
+          <div class="accordion-content">LDL 是肝臟將膽固醇運送至全身的「貨車」；HDL 是載回肝臟的「逆向運輸車」。問題在於送出的貨車過多並塞在血管壁。</div>
+        </div>
+        <div class="accordion" onclick="toggleAccordion(this)">
+          <div class="accordion-header">3. 血脂追蹤新共識：看 ApoB</div>
+          <div class="accordion-content">致病關鍵為 ApoB 顆粒數量。「HDL 越高越好」已被推翻，硬拉高 HDL 無法降低心血管風險。追蹤優先序：LDL-C / ApoB ＞ HDL。</div>
+        </div>
+        <div class="accordion" onclick="toggleAccordion(this)">
+          <div class="accordion-header">4. 血管斑塊致病機制</div>
+          <div class="accordion-content">心肌梗塞主因：斑塊表面破裂 ➔ 血小板聚集 ➔ 原地形成血栓塞死。碎屑飄走主要發生於頸動脈斑塊引發腦中風。重點在控制斑塊生長速度與維持穩定。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">四、胰島素阻抗 vs β 細胞衰退</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>階段</th>
+                <th>實際生理狀況</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. 胰島素阻抗</strong></td>
+                <td>細胞門鎖變遲鈍，需分泌更多胰島素代償（門鎖生鏽）。</td>
+              </tr>
+              <tr>
+                <td><strong>2. β 細胞衰退</strong></td>
+                <td>胰臟長期超時加班造成功能下降，進展至第二型糖尿病（工人累垮）。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-sub); margin-top:8px;">
+          *「進食頻繁會把胰島素用壞」缺乏強烈證據，關鍵在於總熱量、精緻糖與體脂率。餐間頻繁吃甜食會導致血糖鋸齒狀震盪。
+        </p>
+      </div>
+
+    </div>
+
+    <!-- TAB 3: 日常保健行動計劃 -->
+    <div id="tab3" class="tab-content">
+      <div class="card">
+        <div class="card-title">五、日常保健行動清單 (可勾選執行)</div>
+
+        <h4 style="font-size:0.9rem; color:var(--primary-color); margin:12px 0 6px;">1. 運動策略 (肌力優先)</h4>
+        <div class="checklist-item">
+          <input type="checkbox" id="ex1">
+          <label for="ex1" class="checklist-text">
+            <strong>阻力訓練每週 2–3 次 (每次 40–60 分鐘)</strong>
+            <span>大肌群動作：深蹲、硬舉、臥推、划船、肩推</span>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="ex2">
+          <label for="ex2" class="checklist-text">
+            <strong><span class="cp-tag">最高 CP 值</span> 餐後散步 10–15 分鐘</strong>
+            <span>明顯降低餐後血糖峰值，執行門檻最低</span>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="ex3">
+          <label for="ex3" class="checklist-text">
+            <strong>Zone 2 中強度有氧 (每週 150 分鐘)</strong>
+            <span>運動時微喘但仍可正常說話的強度</span>
+          </label>
+        </div>
+
+        <h4 style="font-size:0.9rem; color:var(--primary-color); margin:16px 0 6px;">2. 飲食調整 (穩住血糖曲線)</h4>
+        <div class="checklist-item">
+          <input type="checkbox" id="die1">
+          <label for="die1" class="checklist-text">
+            <strong>進食順序：菜 ➔ 蛋白質/油脂 ➔ 澱粉</strong>
+            <span>有效平緩血糖衝高幅度</span>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="die2">
+          <label for="die2" class="checklist-text">
+            <strong>戒除含糖飲料 (優先級最高)</strong>
+            <span>液態糖與果糖對脂肪肝殺傷力遠大於米飯</span>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="die3">
+          <label for="die3" class="checklist-text">
+            <strong>蛋白質補足 (每餐一掌心)</strong>
+            <span>每日目標 1.2–1.6g / kg 體重，維持肌肉原料</span>
+          </label>
+        </div>
+
+        <h4 style="font-size:0.9rem; color:var(--primary-color); margin:16px 0 6px;">3. 睡眠與副交感修復</h4>
+        <div class="checklist-item">
+          <input type="checkbox" id="slp1">
+          <label for="slp1" class="checklist-text">
+            <strong>下午 2 點後停止攝取咖啡因</strong>
+            <span>咖啡因半衰期約 5–6 小時，避免干擾夜間睡眠</span>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="slp2">
+          <label for="slp2" class="checklist-text">
+            <strong>晨間曬太陽 10–15 分鐘 + 固定起床時間</strong>
+            <span>校正皮質醇晝夜節律與生理時鐘</span>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <input type="checkbox" id="slp3">
+          <label for="slp3" class="checklist-text">
+            <strong>睡前腹式呼吸 (吸 4 秒、吐 8 秒)</strong>
+            <span>拉長吐氣時間，最快啟動副交感煞車機制</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: 總結與追蹤指標 -->
+    <div id="tab4" class="tab-content">
+      <div class="card">
+        <div class="card-title">定期追蹤健康指標</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>臨床說明與重點</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>腰圍 / 體脂率</strong></td>
+                <td>比單純看體重更能反映代謝健康狀況。</td>
+              </tr>
+              <tr>
+                <td><strong>空腹血糖 / HbA1c</strong></td>
+                <td>糖化血色素 (HbA1c) 反映近 3 個月平均血糖。</td>
+              </tr>
+              <tr>
+                <td><strong>LDL-C / ApoB</strong></td>
+                <td>評估心血管風險，ApoB 顆粒數優先於傳統 HDL。</td>
+              </tr>
+              <tr>
+                <td><strong>肝功能 + 腹部超音波</strong></td>
+                <td>腹部超音波為評估脂肪肝的最佳檢測。</td>
+              </tr>
+              <tr>
+                <td><strong>血壓 / 靜止心率</strong></td>
+                <td>建議居家定期自測，觀察長期變化趨勢。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <h3>六、一句話總結 core Summary</h3>
+        <p style="font-size:0.9rem; color:#065f46; font-weight:600;">
+          把肌肉練起來、把含糖飲料戒掉、餐後走一走、固定時間起床、下午兩點後不喝咖啡。
+        </p>
+      </div>
+
+      <p style="font-size:0.75rem; color:var(--text-sub); text-align:center; margin-top:16px;">
+        免責聲明：本內容為健康管理知識整理，不構成診斷或醫療建議。若有心悸、胸悶等急迫症狀，請儘速就醫。
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    function toggleAccordion(element) {
+      element.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
