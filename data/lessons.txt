@@ -1,0 +1,121 @@
+# headword | core meaning | English sentence with [[answer]] | Traditional Chinese sentence
+book|書；書籍|I read this [[book]] every evening.|我每天晚上讀這本書。
+apple|蘋果|She eats an [[apple]] after lunch.|她午餐後吃一顆蘋果。
+water|水|Please drink some [[water]].|請喝一些水。
+friend|朋友|He is my best [[friend]].|他是我最好的朋友。
+family|家人；家庭|My [[family]] lives in Taipei.|我的家人住在台北。
+house|房子|Their [[house]] has a small garden.|他們的房子有一座小花園。
+school|學校|The children walk to [[school]].|孩子們走路去學校。
+teacher|老師|Our [[teacher]] explains things clearly.|我們的老師把事情解釋得很清楚。
+student|學生|She is a university [[student]].|她是一名大學生。
+coffee|咖啡|Would you like some [[coffee]]?|你想喝一些咖啡嗎？
+tea|茶|I drink hot [[tea]] in the morning.|我早上喝熱茶。
+food|食物|The [[food]] here is delicious.|這裡的食物很好吃。
+bread|麵包|We need some [[bread]] for breakfast.|我們早餐需要一些麵包。
+breakfast|早餐|I eat [[breakfast]] at seven.|我七點吃早餐。
+lunch|午餐|Let's have [[lunch]] together.|我們一起吃午餐吧。
+dinner|晚餐|She makes [[dinner]] for her family.|她為家人做晚餐。
+morning|早晨|I go for a walk every [[morning]].|我每天早晨都去散步。
+afternoon|下午|We have a meeting this [[afternoon]].|我們今天下午有個會議。
+evening|傍晚；晚上|We watch a movie in the [[evening]].|我們晚上看電影。
+night|夜晚|The streets are quiet at [[night]].|夜晚的街道很安靜。
+day|一天；日子|Have a nice [[day]]!|祝你有美好的一天！
+week|星期；週|I visit my parents every [[week]].|我每週都去看我的父母。
+month|月份；月|December is the last [[month]] of the year.|十二月是一年中的最後一個月。
+year|年|We moved here last [[year]].|我們去年搬到這裡。
+time|時間|We don't have much [[time]].|我們沒有太多時間。
+today|今天|I'm staying home [[today]].|我今天待在家裡。
+tomorrow|明天|I'll call you [[tomorrow]].|我明天會打電話給你。
+yesterday|昨天|I saw her [[yesterday]].|我昨天見到她。
+home|家|Our [[home]] is near the station.|我們的家在車站附近。
+room|房間|This [[room]] is very bright.|這個房間很明亮。
+door|門|Please close the [[door]].|請把門關上。
+window|窗戶|Open the [[window]] for some fresh air.|打開窗戶，讓新鮮空氣進來。
+table|桌子|Put the plates on the [[table]].|把盤子放在桌子上。
+chair|椅子|Please sit on this [[chair]].|請坐在這張椅子上。
+bed|床|The cat is sleeping on my [[bed]].|那隻貓正在我的床上睡覺。
+bag|袋子；包包|My phone is in my [[bag]].|我的手機在我的包包裡。
+phone|電話|Can I use your [[phone]]?|我可以用你的電話嗎？
+computer|電腦|I use a [[computer]] for work.|我用電腦工作。
+car|汽車|He drives a small [[car]].|他開一輛小汽車。
+bus|公車|We take the [[bus]] to school.|我們搭公車去學校。
+train|火車|The [[train]] leaves at nine.|這班火車九點出發。
+station|車站|Meet me at the [[station]].|在車站跟我碰面。
+airport|機場|We arrived at the [[airport]] early.|我們提早抵達機場。
+city|城市|This [[city]] has many parks.|這座城市有許多公園。
+country|國家|Which [[country]] are you from?|你來自哪一個國家？
+street|街道|The shop is across the [[street]].|那家店在街道對面。
+park|公園|We had a picnic in the [[park]].|我們在公園野餐。
+garden|花園|She grows flowers in her [[garden]].|她在花園裡種花。
+tree|樹|There is a big [[tree]] outside.|外面有一棵大樹。
+flower|花|This yellow [[flower]] smells lovely.|這朵黃色的花聞起來很香。
+dog|狗|Our [[dog]] loves to run.|我們的狗喜歡跑步。
+cat|貓|The [[cat]] is under the table.|那隻貓在桌子下面。
+bird|鳥|A little [[bird]] is singing.|一隻小鳥正在唱歌。
+fish|魚|There is a [[fish]] in the pond.|池塘裡有一條魚。
+animal|動物|What is your favorite [[animal]]?|你最喜歡的動物是什麼？
+happy|開心的|I'm so [[happy]] to see you.|見到你，我很開心。
+sad|難過的|She feels [[sad]] when it rains.|下雨時她覺得難過。
+tired|疲倦的|I'm [[tired]] after a long day.|忙了一整天後，我很疲倦。
+hungry|飢餓的|Are you [[hungry]]? Let's eat.|你餓了嗎？我們吃東西吧。
+thirsty|口渴的|I'm [[thirsty]] after the run.|跑步後我很口渴。
+good|好的|That's a [[good]] idea.|那是個好主意。
+bad|不好的；糟糕的|We had some [[bad]] news.|我們收到了一些壞消息。
+big|大的|They have a [[big]] kitchen.|他們有一個大廚房。
+small|小的|I'd like a [[small]] coffee.|我想要一杯小杯咖啡。
+new|新的|I bought a [[new]] jacket.|我買了一件新外套。
+old|老的；舊的|This is an [[old]] photograph.|這是一張舊照片。
+young|年輕的|My grandmother looks very [[young]].|我的祖母看起來很年輕。
+hot|熱的|Be careful. The soup is [[hot]].|小心，湯很燙。
+cold|冷的|It's [[cold]] outside today.|今天外面很冷。
+beautiful|美麗的|What a [[beautiful]] view!|多麼美麗的景色啊！
+easy|容易的|This question is [[easy]].|這個問題很容易。
+difficult|困難的|Learning a new language can be [[difficult]].|學習一門新語言可能很困難。
+important|重要的|Sleep is [[important]] for your health.|睡眠對你的健康很重要。
+interesting|有趣的|That's an [[interesting]] story.|那是個有趣的故事。
+busy|忙碌的|I'm [[busy]] this afternoon.|我今天下午很忙。
+ready|準備好的|Are you [[ready]] to leave?|你準備好要出發了嗎？
+read|閱讀|I [[read]] the news every morning.|我每天早上閱讀新聞。
+write|寫|Please [[write]] your name here.|請在這裡寫下你的名字。
+listen|聽|Please [[listen]] to the instructions.|請聽指示。
+speak|說；講|Do you [[speak]] English?|你會說英文嗎？
+learn|學習|I want to [[learn]] a new skill.|我想學習一項新技能。
+study|學習；研究|My [[study]] of English began last year.|我對英文的學習始於去年。
+work|工作|I [[work]] in a hospital.|我在醫院工作。
+play|玩；演奏|The children [[play]] outside.|孩子們在外面玩。
+walk|走路|I [[walk]] to work every day.|我每天走路去上班。
+run|跑|I [[run]] in the park every Sunday.|我每個星期日都在公園跑步。
+eat|吃|What do you want to [[eat]]?|你想吃什麼？
+drink|飲用；喝|I [[drink]] milk with breakfast.|我吃早餐時喝牛奶。
+sleep|睡覺|I usually [[sleep]] for eight hours.|我通常睡八個小時。
+buy|買|I need to [[buy]] some eggs.|我需要買一些蛋。
+make|製作；做|Let's [[make]] a cake.|我們來做一個蛋糕吧。
+take|拿；帶|Please [[take]] an umbrella with you.|請隨身帶一把雨傘。
+go|去|Let's [[go]] to the beach.|我們去海灘吧。
+come|來|Please [[come]] to my party.|請來參加我的派對。
+see|看見|I can [[see]] the sea from here.|我從這裡可以看見大海。
+know|知道|Do you [[know]] her name?|你知道她的名字嗎？
+think|想；認為|I [[think]] this is the right way.|我認為這是正確的方向。
+want|想要|I [[want]] to visit Japan.|我想去日本旅遊。
+need|需要|We [[need]] more chairs.|我們需要更多椅子。
+help|幫助|Can you [[help]] me with this box?|你可以幫我搬這個箱子嗎？
+only|唯一的|This is the [[only]] key I have.|這是我唯一的一把鑰匙。
+serious|認真的|I'm [[serious]] about learning English.|我對學英文是認真的。
+inside|在裡面|Your keys are [[inside]] the drawer.|你的鑰匙在抽屜裡面。
+according to|根據|[[According to]] the schedule, the train leaves at six.|根據時刻表，火車六點出發。
+borrow|借入|Can I [[borrow]] your pen?|我可以借你的筆嗎？
+improve|改善；進步|Practice can [[improve]] your English.|練習可以改善你的英文。
+decide|決定|We need to [[decide]] where to eat.|我們需要決定去哪裡吃飯。
+advice|建議|Thank you for your helpful [[advice]].|謝謝你有幫助的建議。
+achieve|達成|You can [[achieve]] your goal with practice.|你可以透過練習達成目標。
+confident|有自信的|She feels [[confident]] before the interview.|面試前她感到很有自信。
+opportunity|機會|This is a great [[opportunity]] to learn.|這是個很好的學習機會。
+experience|經驗|Do you have any teaching [[experience]]?|你有任何教學經驗嗎？
+develop|發展；培養|Reading helps children [[develop]] their imagination.|閱讀幫助孩子培養想像力。
+consider|考慮|Please [[consider]] all the options.|請考慮所有選項。
+aware|知道的；察覺的|Are you [[aware]] of the problem?|你知道這個問題嗎？
+reliable|可靠的|We need a [[reliable]] internet connection.|我們需要可靠的網路連線。
+approach|方法|Let's try a different [[approach]].|我們試試不同的方法吧。
+efficient|有效率的|This is a more [[efficient]] way to work.|這是一種更有效率的工作方式。
+essential|必要的|Water is [[essential]] for life.|水對生命是必要的。
+perspective|觀點|Try to see it from her [[perspective]].|試著從她的觀點看這件事。
