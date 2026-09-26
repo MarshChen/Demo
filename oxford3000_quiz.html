@@ -178,6 +178,7 @@
         <div class="flashcard-toolbar">
           <button type="button" class="secondary" id="flipToggleBtn" aria-expanded="false" aria-controls="flipBack">顯示意思</button>
           <button type="button" class="secondary" id="flipSpeakBtn" title="播放單字發音">🔊 單字</button>
+          <button type="button" class="secondary" id="flipAskAssistantBtn">問助理</button>
         </div>
         <div class="flip-card-inner">
           <div class="flip-card-front">
@@ -228,7 +229,7 @@
       </div>
 
       <h3>Gemini API 設定</h3>
-      <p class="sub" style="margin:0 0 12px;">設定後可在測驗結束時一鍵自動評分。⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
+      <p class="sub" style="margin:0 0 12px;">評分、例句更新與單字小助手共用這組設定。⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
       <div class="row">
         <div class="field">
           <label>Gemini API Key</label>
@@ -272,6 +273,71 @@
 
   <div class="toast" id="toast"></div>
 </div>
+
+<!-- AI CHAT ASSISTANT -->
+<button type="button" class="chat-launcher" id="chatLauncher" aria-label="開啟單字小助手" aria-expanded="false" aria-controls="chatPanel" title="問問單字小助手">
+  <svg class="chat-robot" viewBox="0 0 80 80" aria-hidden="true" focusable="false">
+    <path class="robot-outline" d="M40 19v-8"/>
+    <circle class="robot-antenna" cx="40" cy="9" r="4"/>
+    <rect class="robot-body" x="10" y="24" width="60" height="44" rx="17"/>
+    <rect class="robot-face" x="18" y="32" width="44" height="27" rx="11"/>
+    <path class="robot-outline" d="M7 39v13M73 39v13M25 69v5M55 69v5"/>
+    <circle class="robot-eye" cx="29" cy="43" r="3"/><circle class="robot-eye" cx="51" cy="43" r="3"/>
+    <path class="robot-outline" d="M35 49q5 6 10 0"/>
+    <circle class="robot-cheek" cx="23" cy="49" r="3"/><circle class="robot-cheek" cx="57" cy="49" r="3"/>
+  </svg>
+  <span>問助理</span>
+  <span class="chat-unread hidden" id="chatUnread" aria-hidden="true"></span>
+</button>
+
+<section class="chat-panel hidden" id="chatPanel" role="dialog" aria-modal="false" aria-labelledby="chatTitle" aria-describedby="chatMemoryNote">
+  <header class="chat-header">
+    <div class="chat-heading">
+      <span class="chat-avatar" aria-hidden="true">✦</span>
+      <div><h2 id="chatTitle">單字小助手</h2><span class="chat-mode" id="chatMode">學習解說模式</span></div>
+    </div>
+    <div class="chat-header-actions">
+      <button type="button" class="secondary" id="chatNewBtn">新對話</button>
+      <button type="button" class="secondary chat-close" id="chatCloseBtn" aria-label="收起單字小助手" title="收起">✕</button>
+    </div>
+  </header>
+  <p class="chat-note" id="chatMemoryNote">AI 回答，未搜尋網路 · 記憶最近 10 輪問答</p>
+  <div class="chat-log" id="chatLog" role="log" aria-label="與單字小助手的對話" aria-live="polite" aria-relevant="additions text" tabindex="0">
+    <div class="chat-welcome" id="chatWelcome">
+      <span class="chat-welcome-icon" aria-hidden="true">✦</span>
+      <h3>一起把英文弄懂吧！</h3>
+      <p>問我單字、片語、文法或翻譯。像是「borrow 和 lend 有什麼不同？」</p>
+      <p class="chat-welcome-note">先簡短解釋，再陪你慢慢追問。</p>
+    </div>
+  </div>
+  <div class="chat-config hidden" id="chatConfigNotice">
+    <span>先完成 Gemini 設定，就可以開始聊天。</span>
+    <button type="button" class="secondary" id="chatSettingsBtn">開啟設定</button>
+  </div>
+  <div class="chat-composer">
+    <div class="chat-shortcuts" id="chatShortcuts" aria-label="快捷提問">
+      <button type="button" class="secondary" data-chat-prompt="explain">解釋單字</button>
+      <button type="button" class="secondary" data-chat-prompt="example">造句</button>
+      <button type="button" class="secondary" data-chat-prompt="compare">比較用法</button>
+    </div>
+    <form id="chatForm">
+      <label for="chatInput">想問什麼？</label>
+      <textarea id="chatInput" rows="3" placeholder="輸入英文問題，或從閃卡按「問助理」…" aria-describedby="chatInputHelp chatInputCount"></textarea>
+      <div class="chat-input-footer">
+        <span id="chatInputCount">0 / 2,000</span>
+        <div class="chat-send-actions">
+          <button type="button" class="secondary hidden" id="chatStopBtn">停止</button>
+          <button type="submit" id="chatSendBtn">送出 ↗</button>
+        </div>
+      </div>
+    </form>
+    <div class="chat-status-row" role="status" aria-live="polite" aria-atomic="true">
+      <span class="spinner hidden" id="chatSpinner" aria-hidden="true"></span>
+      <span id="chatStatus"></span>
+    </div>
+    <p class="chat-input-help" id="chatInputHelp">Enter 送出 · Shift+Enter 換行 · 重新整理會清空對話</p>
+  </div>
+</section>
 
 <script src="oxford3000_words.js"></script>
 <script src="oxford3000_quiz.js"></script>
