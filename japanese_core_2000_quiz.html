@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Japanese Core 2000 單字測驗</title>
+<link rel="stylesheet" href="japanese_core_2000_quiz.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between; align-items:flex-start; flex-wrap:nowrap; gap:12px;">
+    <div>
+      <h1>📘 Japanese Core 2000</h1>
+      <p class="sub">使用 Jiten 頻率詞表前 2,000 筆日文詞條；看日文與假名，輸入繁體中文意思，再由 Gemini 評分。本教材不是 iKnow! 原版。</p>
+      <p class="sub">詞表來源：<a href="https://jiten.moe/frequency-dictionaries" target="_blank" rel="noopener noreferrer">Jiten</a>，衍生教材依 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>；詳見 <a href="DATA_SOURCES.md">資料說明</a>。</p>
+    </div>
+    <button type="button" class="icon-btn secondary" id="openSettingsBtn" title="設定">⚙️</button>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div class="card" id="setupScreen">
+    <div class="card hidden" id="resumeBanner" style="background:var(--color-warning-surface); border-color:var(--color-warning); padding:16px; margin-bottom:18px;">
+      <p style="margin:0 0 10px; font-size:.9rem;">偵測到上次有一份未完成的測驗（進度：<span id="resumeProgress"></span>），是否要繼續？</p>
+      <div class="actions" style="margin-top:0;">
+        <button id="resumeBtn">繼續上次測驗</button>
+        <button class="secondary" id="discardResumeBtn">放棄並清除紀錄</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:18px;">
+      <div class="field">
+        <label>頻率組別（每組 200 筆）</label>
+        <div class="groups" id="groupChips">
+          <div class="chip active" data-group="1">第 1 組</div>
+          <div class="chip active" data-group="2">第 2 組</div>
+          <div class="chip active" data-group="3">第 3 組</div>
+          <div class="chip active" data-group="4">第 4 組</div>
+          <div class="chip active" data-group="5">第 5 組</div>
+          <div class="chip active" data-group="6">第 6 組</div>
+          <div class="chip active" data-group="7">第 7 組</div>
+          <div class="chip active" data-group="8">第 8 組</div>
+          <div class="chip active" data-group="9">第 9 組</div>
+          <div class="chip active" data-group="10">第 10 組</div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:18px;">
+      <div class="field">
+        <label>題目數量</label>
+        <select id="questionCount">
+          <option value="10" selected>10 題</option>
+          <option value="20">20 題</option>
+          <option value="50">50 題</option>
+          <option value="100">100 題</option>
+          <option value="all">全部（符合條件的單字）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>出題順序</label>
+        <select id="orderMode">
+          <option value="random" selected>隨機</option>
+          <option value="sequential">依單字表順序</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>你的名字（選填，會記住在此瀏覽器）</label>
+        <input type="text" id="userName" placeholder="例如：小明">
+      </div>
+    </div>
+    <p id="poolInfo" class="sub" style="margin-top:14px;"></p>
+
+    <div class="hidden" id="fullClearBanner">
+      <div class="full-clear-banner">👑 恭喜！Japanese Core 2000 的全部 2,000 筆日文詞條都已經學會，平台已破關！</div>
+    </div>
+
+    <div class="dashboard" id="dashboard">
+      <div class="dash-total">
+        <span>總學習進度</span>
+        <b id="dashProgressLabel">0 / 0</b>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="dashProgressFill"></div></div>
+      <div class="group-progress-row" id="groupProgressRow"></div>
+      <div class="badge-row" id="badgeRow"></div>
+      <p class="sub hidden" id="upcomingReviewNote" style="margin:10px 0 0;"></p>
+    </div>
+
+    <div class="hidden" id="geminiRequiredBanner" style="margin:16px 0 4px;">
+      <div class="notice-banner">⚠️ 請先點右上角「⚙️ 設定」完成 Gemini API 設定，才能開始測驗並自動評分。</div>
+    </div>
+
+    <div class="row hidden" id="reinforceRow" style="margin:16px 0 4px;">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+        <input type="checkbox" id="includeMasteredChk">
+        包含已學會單字（鞏固複習，答錯會退回待複習）
+      </label>
+    </div>
+
+    <div class="actions" id="practiceActions">
+      <button class="secondary hidden" id="reviewBtn">🔁 複習測驗</button>
+      <button class="secondary hidden" id="flashcardBtn">📇 閃卡複習</button>
+    </div>
+
+    <div class="actions">
+      <button id="startBtn" disabled title="請先完成 Gemini API 設定">開始測驗</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="card hidden" id="quizScreen">
+    <div class="quiz-mode-badge hidden" id="quizModeBadge">🔁 複習測驗</div>
+    <div class="progress-text" id="progressText"></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="word-display">
+      <div class="word" id="currentWord" lang="ja">日本語</div>
+      <div class="word-reading" id="currentReading" lang="ja">にほんご</div>
+      <div class="group-badge" id="currentGroup">第 1 組</div>
+    </div>
+    <label for="answerInput">請輸入中文意思</label>
+    <div class="answer-row">
+      <input type="text" class="answer-input" id="answerInput" autocomplete="off" placeholder="輸入中文意思，按 Enter 下一題">
+      <button type="button" class="icon-btn mic-btn hidden" id="micBtn" title="語音輸入">🎤</button>
+      <button type="button" class="icon-btn clear-btn" id="clearAnswerBtn" title="清除（Esc）">✕</button>
+    </div>
+    <div class="nav-actions">
+      <button class="secondary" id="prevBtn">← 上一題</button>
+      <div class="mid">
+        <button class="secondary" id="skipBtn">跳過</button>
+      </div>
+      <button id="nextBtn">下一題 →</button>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="finishBtn">提早結束並產生結果</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="card hidden" id="resultScreen">
+    <h2 style="margin-top:0;">✅ 測驗完成</h2>
+    <div class="stat-row">
+      <div class="stat"><b id="statTotal">0</b>總題數</div>
+      <div class="stat"><b id="statAnswered">0</b>已作答</div>
+      <div class="stat"><b id="statSkipped">0</b>跳過</div>
+    </div>
+
+    <div class="card" id="geminiGradeBox" style="background:var(--color-surface-raised); border-color:var(--color-border-default); padding:16px; margin-bottom:18px;">
+      <div class="row" style="justify-content:space-between; align-items:center; gap:12px;">
+        <p class="sub" style="margin:0;">🔮 直接呼叫你設定好的 Gemini API 評分，結果會立即更新學習進度與閃卡。</p>
+        <button type="button" id="geminiGradeBtn" disabled title="尚未設定 Gemini API，請先點右上角「⚙️ 設定」填寫">🔮 使用 Gemini 自動評分</button>
+      </div>
+      <div class="hidden" id="geminiGradeLoading" style="margin:10px 0 0; display:flex; align-items:center; gap:10px;">
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="sub" id="geminiGradeLoadingText" style="margin:0;"></span>
+      </div>
+      <p class="sub hidden" id="geminiGradeStatus" style="margin:10px 0 0;"></p>
+      <div class="actions hidden" id="geminiGradeActions" style="margin-top:10px;">
+        <button type="button" class="secondary" id="goToFlashcardsAfterGradeBtn">📇 前往閃卡複習</button>
+      </div>
+    </div>
+
+    <h3>作答回顧</h3>
+    <div class="review-list" id="reviewList"></div>
+
+    <div class="actions">
+      <button class="secondary" id="restartBtn">重新開始測驗</button>
+    </div>
+  </div>
+
+  <!-- FLASHCARD SCREEN -->
+  <div class="card hidden" id="flashcardScreen">
+    <div class="row" style="justify-content:space-between; align-items:center;">
+      <h2 style="margin:0;">📇 閃卡複習 <span id="flashcardCount" style="color:var(--color-text-tertiary); font-size:.9rem; font-weight:400;"></span></h2>
+      <div class="view-toggle">
+        <button class="secondary active" id="flashcardListModeBtn">列表</button>
+        <button class="secondary" id="flashcardFlipModeBtn">翻卡</button>
+      </div>
+    </div>
+
+    <div id="flashcardListView" style="margin-top:16px;">
+      <div class="review-list" id="flashcardList"></div>
+    </div>
+
+    <div id="flashcardFlipView" class="hidden" style="margin-top:16px;">
+      <div class="progress-text" id="flipProgressText"></div>
+      <div class="flip-card" id="flipCard">
+        <div class="flashcard-toolbar">
+          <button type="button" class="secondary" id="flipToggleBtn" aria-expanded="false" aria-controls="flipBack">顯示意思</button>
+          <button type="button" class="secondary" id="flipSpeakBtn" title="播放單字發音">🔊 單字</button>
+          <button type="button" class="secondary" id="flipAskAssistantBtn">問助理</button>
+        </div>
+        <div class="flip-card-inner">
+          <div class="flip-card-front">
+            <div class="word" id="flipWord" lang="ja">日本語</div>
+            <div class="flip-reading hidden" id="flipReading" lang="ja"></div>
+          </div>
+          <div class="flip-card-back" id="flipBack" hidden>
+            <div class="word" id="flipMeaning" style="font-size:1.6rem;">意思</div>
+            <div class="flip-pos hidden" id="flipPos"></div>
+            <div class="flip-example hidden" id="flipExample"></div>
+            <button type="button" class="secondary" id="simplifyExampleBtn">換成更簡單的例句</button>
+            <p id="exampleUpdateStatus" class="example-status" role="status" aria-live="polite"></p>
+            <div class="flip-mnemonic hidden" id="flipMnemonic"></div>
+            <div class="flip-related hidden" id="flipRelated"></div>
+          </div>
+        </div>
+      </div>
+      <p class="sub" style="text-align:center;">點卡片空白處或「顯示意思」翻面；空白鍵翻面，S 鍵播放單字。</p>
+      <div class="nav-actions">
+        <button class="secondary" id="flipPrevBtn">← 上一張</button>
+        <button id="flipNextBtn">下一張 →</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="startReviewFromFlashcardBtn">📝 開始複習測驗</button>
+      <button class="secondary" id="backFromFlashcardBtn">← 返回</button>
+    </div>
+  </div>
+
+  <!-- FULL CLEAR CELEBRATION -->
+  <div class="full-clear-overlay hidden" id="fullClearOverlay">
+    <div class="full-clear-modal">
+      <h2>🎉 破關！</h2>
+      <p>Japanese Core 2000 的全部 <b id="fullClearTotal">0</b> 筆日文詞條都已經學會了！</p>
+      <button id="closeFullClearBtn">太棒了</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="settings-overlay hidden" id="settingsOverlay">
+    <div class="settings-modal">
+      <div class="row" style="justify-content:space-between; align-items:center; flex-wrap:nowrap; margin-bottom:16px;">
+        <h2>⚙️ 設定</h2>
+        <button type="button" class="icon-btn clear-btn" id="closeSettingsBtn" title="關閉">✕</button>
+      </div>
+
+      <h3>Gemini API 設定</h3>
+      <p class="sub" style="margin:0 0 12px;">評分、例句更新與單字小助手共用這組設定。⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
+      <div class="row">
+        <div class="field">
+          <label>Gemini API Key</label>
+          <div class="answer-row">
+            <input type="password" id="geminiApiKey" placeholder="貼上你的 Gemini API Key" autocomplete="off">
+            <button type="button" class="icon-btn secondary" id="toggleKeyVisibilityBtn" title="顯示/隱藏金鑰">👁️</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="geminiModelId">Model ID</label>
+          <input type="text" id="geminiModelId" value="gemini-3.5-flash-lite" placeholder="可輸入模型 ID 或從清單選擇" list="geminiModelSuggestions" autocomplete="off">
+          <datalist id="geminiModelSuggestions">
+            <option value="gemini-3.7-flash">
+            <option value="gemini-3.5-flash">
+            <option value="gemini-3.5-flash-lite">
+          </datalist>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:12px; align-items:center;">
+        <button type="button" class="secondary" id="testGeminiBtn">🔌 測試連線</button>
+        <span class="sub" id="geminiTestResult" style="margin:0;"></span>
+      </div>
+
+      <hr class="settings-divider">
+
+      <h3>進度備份</h3>
+      <p class="sub" style="margin:0 0 12px;">可匯出後在其他裝置/瀏覽器匯入還原。</p>
+      <div class="row" style="align-items:center;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; margin:0; font-size:.85rem; font-weight:400;">
+          <input type="checkbox" id="exportIncludeGeminiKeyChk">
+          匯出時包含 API Key
+        </label>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button type="button" class="secondary" id="exportProgressBtn">📤 匯出進度</button>
+        <button type="button" class="secondary" id="importProgressBtn">📥 匯入進度</button>
+        <input type="file" id="importProgressFile" accept="application/json,.json" class="hidden" aria-label="匯入進度檔案">
+      </div>
+      <p class="sub" id="importProgressStatus" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- AI CHAT ASSISTANT -->
+<button type="button" class="chat-launcher" id="chatLauncher" aria-label="開啟單字小助手" aria-expanded="false" aria-controls="chatPanel" title="問問單字小助手">
+  <svg class="chat-robot" viewBox="0 0 80 80" aria-hidden="true" focusable="false">
+    <path class="robot-outline" d="M40 19v-8"/>
+    <circle class="robot-antenna" cx="40" cy="9" r="4"/>
+    <rect class="robot-body" x="10" y="24" width="60" height="44" rx="17"/>
+    <rect class="robot-face" x="18" y="32" width="44" height="27" rx="11"/>
+    <path class="robot-outline" d="M7 39v13M73 39v13M25 69v5M55 69v5"/>
+    <circle class="robot-eye" cx="29" cy="43" r="3"/><circle class="robot-eye" cx="51" cy="43" r="3"/>
+    <path class="robot-outline" d="M35 49q5 6 10 0"/>
+    <circle class="robot-cheek" cx="23" cy="49" r="3"/><circle class="robot-cheek" cx="57" cy="49" r="3"/>
+  </svg>
+  <span>問助理</span>
+  <span class="chat-unread hidden" id="chatUnread" aria-hidden="true"></span>
+</button>
+
+<section class="chat-panel hidden" id="chatPanel" role="dialog" aria-modal="false" aria-labelledby="chatTitle" aria-describedby="chatMemoryNote">
+  <header class="chat-header">
+    <div class="chat-heading">
+      <span class="chat-avatar" aria-hidden="true">✦</span>
+      <div><h2 id="chatTitle">單字小助手</h2><span class="chat-mode" id="chatMode">學習解說模式</span></div>
+    </div>
+    <div class="chat-header-actions">
+      <button type="button" class="secondary" id="chatNewBtn">新對話</button>
+      <button type="button" class="secondary chat-close" id="chatCloseBtn" aria-label="收起單字小助手" title="收起">✕</button>
+    </div>
+  </header>
+  <p class="chat-note" id="chatMemoryNote">AI 回答，未搜尋網路 · 記憶最近 10 輪問答</p>
+  <div class="chat-log" id="chatLog" role="log" aria-label="與單字小助手的對話" aria-live="polite" aria-relevant="additions text" tabindex="0">
+    <div class="chat-welcome" id="chatWelcome">
+      <span class="chat-welcome-icon" aria-hidden="true">✦</span>
+      <h3>一起把日文弄懂吧！</h3>
+      <p>問我詞語、假名、助詞、文法或翻譯。像是「は和が有什麼不同？」</p>
+      <p class="chat-welcome-note">先簡短解釋，再陪你慢慢追問。</p>
+    </div>
+  </div>
+  <div class="chat-config hidden" id="chatConfigNotice">
+    <span>先完成 Gemini 設定，就可以開始聊天。</span>
+    <button type="button" class="secondary" id="chatSettingsBtn">開啟設定</button>
+  </div>
+  <div class="chat-composer">
+    <div class="chat-shortcuts" id="chatShortcuts" aria-label="快捷提問">
+      <button type="button" class="secondary" data-chat-prompt="explain">解釋單字</button>
+      <button type="button" class="secondary" data-chat-prompt="example">造句</button>
+      <button type="button" class="secondary" data-chat-prompt="compare">比較用法</button>
+    </div>
+    <form id="chatForm">
+      <label for="chatInput">想問什麼？</label>
+      <textarea id="chatInput" rows="3" placeholder="輸入日文問題，或從閃卡按「問助理」…" aria-describedby="chatInputHelp chatInputCount"></textarea>
+      <div class="chat-input-footer">
+        <span id="chatInputCount">0 / 2,000</span>
+        <div class="chat-send-actions">
+          <button type="button" class="secondary hidden" id="chatStopBtn">停止</button>
+          <button type="submit" id="chatSendBtn">送出 ↗</button>
+        </div>
+      </div>
+    </form>
+    <div class="chat-status-row" role="status" aria-live="polite" aria-atomic="true">
+      <span class="spinner hidden" id="chatSpinner" aria-hidden="true"></span>
+      <span id="chatStatus"></span>
+    </div>
+    <p class="chat-input-help" id="chatInputHelp">Enter 送出 · Shift+Enter 換行 · 重新整理會清空對話</p>
+  </div>
+</section>
+
+<script src="japanese_core_2000_words.js"></script>
+<script src="japanese_core_2000_quiz.js"></script>
+</body>
+</html>
