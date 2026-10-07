@@ -11,7 +11,7 @@
   <div class="row" style="justify-content:space-between; align-items:flex-start; flex-wrap:nowrap; gap:12px;">
     <div>
       <h1>📘 Oxford 3000 英文測驗</h1>
-      <p class="sub">看英文單字，輸入你認為的中文意思，測驗結束後用 Gemini 自動評分。</p>
+      <p class="sub">看英文單字，輸入你認為的中文意思，測驗結束後用 AI 自動評分。</p>
     </div>
     <button type="button" class="icon-btn secondary" id="openSettingsBtn" title="設定">⚙️</button>
   </div>
@@ -38,10 +38,10 @@
     </div>
     <div class="row" style="margin-bottom:18px;">
       <div class="field">
-        <label>題目數量</label>
+        <label>一般測驗題目數量</label>
         <select id="questionCount">
-          <option value="10">10 題</option>
-          <option value="20" selected>20 題</option>
+          <option value="10" selected>10 題</option>
+          <option value="20">20 題</option>
           <option value="50">50 題</option>
           <option value="100">100 題</option>
           <option value="all">全部（符合條件的單字）</option>
@@ -79,7 +79,7 @@
     </div>
 
     <div class="hidden" id="geminiRequiredBanner" style="margin:16px 0 4px;">
-      <div class="notice-banner">⚠️ 請先點右上角「⚙️ 設定」完成 Gemini API 設定，才能開始測驗並自動評分。</div>
+      <div class="notice-banner" id="aiRequiredMessage">⚠️ 請先點右上角「⚙️ 設定」完成 AI API 設定，才能開始測驗並自動評分。</div>
     </div>
 
     <div class="row hidden" id="reinforceRow" style="margin:16px 0 4px;">
@@ -137,7 +137,7 @@
 
     <div class="card" id="geminiGradeBox" style="background:var(--color-surface-raised); border-color:var(--color-border-default); padding:16px; margin-bottom:18px;">
       <div class="row" style="justify-content:space-between; align-items:center; gap:12px;">
-        <p class="sub" style="margin:0;">🔮 直接呼叫你設定好的 Gemini API 評分，結果會立即更新學習進度與閃卡。</p>
+        <p class="sub" id="aiGradingDescription" style="margin:0;">🔮 直接呼叫你設定好的 AI API 評分，結果會立即更新學習進度與閃卡。</p>
         <button type="button" id="geminiGradeBtn" disabled title="尚未設定 Gemini API，請先點右上角「⚙️ 設定」填寫">🔮 使用 Gemini 自動評分</button>
       </div>
       <div class="hidden" id="geminiGradeLoading" style="margin:10px 0 0; display:flex; align-items:center; gap:10px;">
@@ -206,7 +206,7 @@
     </div>
 
     <div class="actions">
-      <button id="startReviewFromFlashcardBtn">📝 開始複習測驗</button>
+      <button id="startReviewFromFlashcardBtn">📝 開始複習測驗（最多 20 題）</button>
       <button class="secondary" id="backFromFlashcardBtn">← 返回</button>
     </div>
   </div>
@@ -228,29 +228,41 @@
         <button type="button" class="icon-btn clear-btn" id="closeSettingsBtn" title="關閉">✕</button>
       </div>
 
-      <h3>Gemini API 設定</h3>
+      <h3>AI API 設定</h3>
       <p class="sub" style="margin:0 0 12px;">評分、例句更新與單字小助手共用這組設定。⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
       <div class="row">
         <div class="field">
-          <label>Gemini API Key</label>
+          <label for="aiProvider">AI 服務</label>
+          <select id="aiProvider">
+            <option value="gemini">Gemini</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="aiApiKey" id="aiApiKeyLabel">Gemini API Key</label>
           <div class="answer-row">
-            <input type="password" id="geminiApiKey" placeholder="貼上你的 Gemini API Key" autocomplete="off">
+            <input type="password" id="aiApiKey" placeholder="貼上你的 Gemini API Key" autocomplete="off">
             <button type="button" class="icon-btn secondary" id="toggleKeyVisibilityBtn" title="顯示/隱藏金鑰">👁️</button>
           </div>
         </div>
         <div class="field">
-          <label for="geminiModelId">Model ID</label>
-          <input type="text" id="geminiModelId" placeholder="例如：gemini-2.5-flash（可輸入或從清單選擇）" list="geminiModelSuggestions" autocomplete="off">
-          <datalist id="geminiModelSuggestions">
-            <option value="gemini-3.7-flash">
-            <option value="gemini-3.5-flash">
-            <option value="gemini-3.5-flash-lite">
-          </datalist>
+          <label for="aiModelSelect">模型</label>
+          <select id="aiModelSelect"></select>
+          <div id="aiCustomModelField" class="hidden">
+            <label for="aiCustomModelId">自訂 Model ID</label>
+            <input type="text" id="aiCustomModelId" placeholder="輸入 Gemini Model ID" autocomplete="off">
+          </div>
         </div>
       </div>
       <div class="actions" style="margin-top:12px; align-items:center;">
         <button type="button" class="secondary" id="testGeminiBtn">🔌 測試連線</button>
         <span class="sub" id="geminiTestResult" style="margin:0;"></span>
+      </div>
+      <div class="row" style="align-items:center; margin-top:12px;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; margin:0; font-size:.85rem; font-weight:400;">
+          <input type="checkbox" id="logGeminiTokensChk">
+          在 Console 顯示 Token 用量
+        </label>
       </div>
 
       <hr class="settings-divider">
@@ -311,7 +323,7 @@
     </div>
   </div>
   <div class="chat-config hidden" id="chatConfigNotice">
-    <span>先完成 Gemini 設定，就可以開始聊天。</span>
+    <span>先完成 AI API 設定，就可以開始聊天。</span>
     <button type="button" class="secondary" id="chatSettingsBtn">開啟設定</button>
   </div>
   <div class="chat-composer">
