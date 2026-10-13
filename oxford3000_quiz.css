@@ -90,6 +90,7 @@
 
   .word-display{text-align:center; margin:28px 0;}
   .word{font-size:2.6rem; font-weight:700; letter-spacing:.5px; color:var(--color-text-primary);}
+  .quiz-speak-btn{margin:8px 8px 0 0; vertical-align:middle;}
   .level-badge{
     display:inline-block; font-size:var(--font-size-xs); padding:3px 10px; border-radius:999px;
     background:var(--color-surface-raised); color:var(--color-text-secondary); margin-top:8px; font-weight:600;
@@ -202,6 +203,10 @@
   .example-block{padding:var(--space-6); background:var(--color-surface-muted); border-radius:var(--radius-sm); margin-bottom:var(--space-6);}
   .example-block p{margin:var(--space-6) 0;}
   .example-sentence{font-size:1.15rem; line-height:1.6;}
+  p.speak-row{display:flex; align-items:center; gap:var(--space-4); margin:var(--space-4) 0;}
+  .speak-row>span{min-width:0; overflow-wrap:anywhere;}
+  .flip-chunks{width:100%; min-width:0; text-align:left; padding:var(--space-6); border:1px solid var(--color-border-default); border-radius:var(--radius-sm);}
+  .flip-chunks-title{margin:0; font-size:var(--font-size-sm); font-weight:600; color:var(--color-text-secondary);}
   .example-context,.example-status{font-size:var(--font-size-sm); color:var(--color-text-secondary);}
   .example-status{margin:0; width:100%;}
   .flip-example summary{cursor:pointer; padding:var(--space-6) 0; color:var(--color-text-secondary);}

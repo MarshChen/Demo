@@ -106,6 +106,7 @@
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="word-display">
       <div class="word" id="currentWord">word</div>
+      <button type="button" class="secondary quiz-speak-btn" id="quizSpeakBtn" title="播放單字發音">🔊 發音</button>
       <div class="level-badge" id="currentLevel">A1</div>
     </div>
     <label for="answerInput">請輸入中文意思</label>
@@ -137,7 +138,7 @@
 
     <div class="card" id="geminiGradeBox" style="background:var(--color-surface-raised); border-color:var(--color-border-default); padding:16px; margin-bottom:18px;">
       <div class="row" style="justify-content:space-between; align-items:center; gap:12px;">
-        <p class="sub" id="aiGradingDescription" style="margin:0;">🔮 直接呼叫你設定好的 AI API 評分，結果會立即更新學習進度與閃卡。</p>
+        <p class="sub" id="aiGradingDescription" style="margin:0;">🔮 先更新評分與學習進度，再只為缺少內容的待複習單字補齊閃卡。</p>
         <button type="button" id="geminiGradeBtn" disabled title="尚未設定 Gemini API，請先點右上角「⚙️ 設定」填寫">🔮 使用 Gemini 自動評分</button>
       </div>
       <div class="hidden" id="geminiGradeLoading" style="margin:10px 0 0; display:flex; align-items:center; gap:10px;">
@@ -145,6 +146,8 @@
         <span class="sub" id="geminiGradeLoadingText" style="margin:0;"></span>
       </div>
       <p class="sub hidden" id="geminiGradeStatus" style="margin:10px 0 0;"></p>
+      <p class="sub hidden" id="flashcardGenerationStatus" role="status" style="margin:10px 0 0;"></p>
+      <button type="button" class="secondary hidden" id="retryFlashcardsBtn">補齊缺少閃卡</button>
       <div class="actions hidden" id="geminiGradeActions" style="margin-top:10px;">
         <button type="button" class="secondary" id="goToFlashcardsAfterGradeBtn">📇 前往閃卡複習</button>
       </div>
@@ -190,6 +193,7 @@
             <div class="flip-pos hidden" id="flipPos"></div>
             <div class="flip-phonetic hidden" id="flipPhonetic"></div>
             <div class="flip-soundalike hidden" id="flipSoundAlike"></div>
+            <div class="flip-chunks hidden" id="flipChunks"></div>
             <div class="flip-example hidden" id="flipExample"></div>
             <button type="button" class="secondary" id="simplifyExampleBtn">換成更簡單的例句</button>
             <p id="exampleUpdateStatus" class="example-status" role="status" aria-live="polite"></p>
@@ -229,7 +233,7 @@
       </div>
 
       <h3>AI API 設定</h3>
-      <p class="sub" style="margin:0 0 12px;">評分、例句更新與單字小助手共用這組設定。⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
+      <p class="sub" style="margin:0 0 12px;">評分、閃卡生成、例句更新與單字小助手共用這組設定。⚠️ 金鑰只會存在你目前這個瀏覽器的 localStorage，僅供個人使用，請勿在公用電腦上啟用；「匯出進度」預設不會包含金鑰。</p>
       <div class="row">
         <div class="field">
           <label for="aiProvider">AI 服務</label>
