@@ -6,6 +6,7 @@ let quizWords = [];
 let answers = [];   // { word, level, answer, skipped }
 let currentIndex = 0;
 let chatAssistant = null;
+let activeSpeech = null;
 let selectedLevels = new Set(['A1','A2','B1','B2']);
 let quizMode = 'standard'; // 'standard' | 'review'
 const REVIEW_QUESTION_LIMIT = 20;
@@ -282,7 +283,7 @@ function checkFullClear(previousMasteredCount){
 }
 
 function showScreen(id){
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  stopSpeech();
   ['setupScreen', 'quizScreen', 'resultScreen', 'flashcardScreen'].forEach(s => {
     el(s).classList.toggle('hidden', s !== id);
   });
@@ -635,7 +636,7 @@ el('flashcardList').addEventListener('click', (e) => {
 });
 
 function setFlashcardView(mode){
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  stopSpeech();
   const isList = mode === 'list';
   el('flashcardListView').classList.toggle('hidden', !isList);
   el('flashcardFlipView').classList.toggle('hidden', isList);
@@ -651,17 +652,82 @@ function setOptionalField(id, value){
 }
 
 function speakWord(text, rate = 0.9){
-  if (!text || !('speechSynthesis' in window)) { showToast('此瀏覽器不支援語音播放'); return; }
+  stopSpeech();
+  if (typeof text !== 'string' || !text.trim()) return;
+  if (typeof window.Audio !== 'function') { showToast('此瀏覽器不支援語音播放'); return; }
   try {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    u.rate = rate;
-    u.onerror = (event) => {
-      if (event.error !== 'interrupted' && event.error !== 'canceled') showToast('語音播放失敗，請再試一次');
+    // Reuse one media element across chunks so a manual tap also starts long examples.
+    const audio = new window.Audio();
+    const run = { audio, timer: null, part: 0 };
+    activeSpeech = run;
+    const chunks = splitSpeechText(text);
+    const fail = () => {
+      if (activeSpeech !== run) return;
+      stopSpeech();
+      showToast('Google 翻譯音訊播放失敗，請檢查網路後重試');
     };
-    window.speechSynthesis.speak(u);
-  } catch (e) { showToast('語音播放失敗，請再試一次'); }
+    const playPart = () => {
+      if (activeSpeech !== run) return;
+      const part = run.part;
+      const isCurrent = () => activeSpeech === run && run.part === part;
+      const waitForAudio = () => {
+        if (!isCurrent()) return;
+        clearTimeout(run.timer);
+        run.timer = setTimeout(() => { if (isCurrent()) fail(); }, 15000);
+      };
+      audio.onerror = () => { if (isCurrent()) fail(); };
+      audio.onplaying = () => { if (isCurrent()) clearTimeout(run.timer); };
+      audio.onwaiting = waitForAudio;
+      audio.onended = () => {
+        if (!isCurrent()) return;
+        clearTimeout(run.timer);
+        if (++run.part < chunks.length) playPart();
+        else stopSpeech();
+      };
+      try {
+        // Use a media URL instead of fetch, avoiding a CORS proxy or API key.
+        audio.src = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-US&q=' + encodeURIComponent(chunks[part]);
+        audio.defaultPlaybackRate = rate < 0.9 ? 0.75 : 1;
+        audio.playbackRate = audio.defaultPlaybackRate;
+        audio.preservesPitch = true;
+        waitForAudio();
+        const playing = audio.play();
+        if (playing) playing.catch(() => { if (isCurrent()) fail(); });
+      } catch (error) { if (isCurrent()) fail(); }
+    };
+    playPart();
+  } catch (error) {
+    stopSpeech();
+    showToast('Google 翻譯音訊播放失敗，請再試一次');
+  }
+}
+
+function stopSpeech(){
+  const run = activeSpeech;
+  activeSpeech = null; // Invalidate pending play promises before aborting the media load.
+  if (!run) return;
+  clearTimeout(run.timer);
+  const audio = run.audio;
+  audio.onended = audio.onerror = audio.onplaying = audio.onwaiting = null;
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+}
+
+function splitSpeechText(text){
+  // Stay below the endpoint's short-text limit, keeping words together where possible.
+  const chunks = [];
+  let remaining = Array.from(text.trim().replace(/\s+/g, ' '));
+  while (remaining.length > 180) {
+    let end = 180;
+    while (end > 0 && remaining[end] !== ' ') end--;
+    if (!end) end = 180;
+    chunks.push(remaining.slice(0, end).join(''));
+    remaining = remaining.slice(end);
+    if (remaining[0] === ' ') remaining.shift();
+  }
+  if (remaining.length) chunks.push(remaining.join(''));
+  return chunks;
 }
 
 function setCardFlipped(flipped){
@@ -805,7 +871,7 @@ function renderFlipCard(){
   el('flipWord').textContent = w.word;
   el('flipMeaning').textContent = (entry && entry.meaning) || '（尚無正解紀錄）';
   el('flipProgressText').textContent = `第 ${flipIndex + 1} / ${flashcardDeck.length} 張`;
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  stopSpeech();
 
   setOptionalField('flipPhoneticFront', entry && entry.phonetic ? `🔊 ${entry.phonetic}` : '');
   setOptionalField('flipPos', entry && entry.partOfSpeech);
@@ -872,7 +938,7 @@ el('closeFullClearBtn').addEventListener('click', () => {
 
 function renderQuestion(){
   const w = quizWords[currentIndex];
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  stopSpeech();
   el('currentWord').textContent = w.word;
   el('currentLevel').textContent = w.level || '';
   el('answerInput').value = answers[currentIndex].skipped ? '' : answers[currentIndex].answer;
