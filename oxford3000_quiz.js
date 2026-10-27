@@ -94,6 +94,15 @@ function isTokenUsageLoggingEnabled(){
   try { return localStorage.getItem(TOKEN_USAGE_LOG_KEY) === 'true'; }
   catch (e) { return false; }
 }
+const VOICE_SOURCE_KEY = 'oxford3000_voice_source_v1';
+const SPEECH_RATES = { webspeech: { normal: 0.8, slow: 0.6 }, google: { normal: 1, slow: 0.75 } };
+function loadVoiceSource(){
+  try { return localStorage.getItem(VOICE_SOURCE_KEY) === 'google' ? 'google' : 'webspeech'; }
+  catch (e) { return 'webspeech'; }
+}
+function saveVoiceSource(value){
+  try { localStorage.setItem(VOICE_SOURCE_KEY, value === 'google' ? 'google' : 'webspeech'); } catch (e) { /* ignore */ }
+}
 function logAIUsage(settings, operation, attempt, result, data){
   if (!isTokenUsageLoggingEnabled()) return;
   const usage = settings.provider === 'openai' ? data?.usage : data?.usageMetadata;
@@ -451,6 +460,11 @@ el('logGeminiTokensChk').checked = isTokenUsageLoggingEnabled();
 el('logGeminiTokensChk').addEventListener('change', e => {
   try { localStorage.setItem(TOKEN_USAGE_LOG_KEY, String(e.target.checked)); } catch (error) { /* ignore */ }
 });
+el('voiceSource').value = loadVoiceSource();
+el('voiceSource').addEventListener('change', e => {
+  saveVoiceSource(e.target.value);
+  stopSpeech();
+});
 el('toggleKeyVisibilityBtn').addEventListener('click', () => {
   const input = el('aiApiKey');
   input.type = input.type === 'password' ? 'text' : 'password';
@@ -651,14 +665,52 @@ function setOptionalField(id, value){
   else { node.textContent = ''; node.classList.add('hidden'); }
 }
 
-function speakWord(text, rate = 0.9){
+function speakWord(text, speed = 'normal'){
   stopSpeech();
   if (typeof text !== 'string' || !text.trim()) return;
+  const source = loadVoiceSource();
+  const rate = SPEECH_RATES[source][speed === 'slow' ? 'slow' : 'normal'];
+  if (source === 'google') speakWithGoogle(text, rate);
+  else speakWithWebSpeech(text, rate);
+}
+
+function speakWithWebSpeech(text, rate){
+  if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance !== 'function') { showToast('此瀏覽器不支援語音播放'); return; }
+  const synth = window.speechSynthesis;
+  const fail = () => showToast('瀏覽器語音播放失敗，請再試一次');
+  try {
+    const utterance = new window.SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = rate;
+    const run = { stop() { synth.cancel(); } };
+    activeSpeech = run;
+    utterance.onend = () => { if (activeSpeech === run) activeSpeech = null; };
+    utterance.onerror = (event) => {
+      if (activeSpeech !== run || event?.error === 'interrupted' || event?.error === 'canceled') return;
+      stopSpeech();
+      fail();
+    };
+    // Clear any stuck queue first; some browsers otherwise never start the new utterance.
+    synth.cancel();
+    synth.speak(utterance);
+  } catch (error) {
+    stopSpeech();
+    fail();
+  }
+}
+
+function speakWithGoogle(text, rate){
   if (typeof window.Audio !== 'function') { showToast('此瀏覽器不支援語音播放'); return; }
   try {
     // Reuse one media element across chunks so a manual tap also starts long examples.
     const audio = new window.Audio();
-    const run = { audio, timer: null, part: 0 };
+    const run = { audio, timer: null, part: 0, stop() {
+      clearTimeout(run.timer);
+      audio.onended = audio.onerror = audio.onplaying = audio.onwaiting = null;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+    } };
     activeSpeech = run;
     const chunks = splitSpeechText(text);
     const fail = () => {
@@ -687,7 +739,7 @@ function speakWord(text, rate = 0.9){
       try {
         // Use a media URL instead of fetch, avoiding a CORS proxy or API key.
         audio.src = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-US&q=' + encodeURIComponent(chunks[part]);
-        audio.defaultPlaybackRate = rate < 0.9 ? 0.75 : 1;
+        audio.defaultPlaybackRate = rate;
         audio.playbackRate = audio.defaultPlaybackRate;
         audio.preservesPitch = true;
         waitForAudio();
@@ -704,14 +756,8 @@ function speakWord(text, rate = 0.9){
 
 function stopSpeech(){
   const run = activeSpeech;
-  activeSpeech = null; // Invalidate pending play promises before aborting the media load.
-  if (!run) return;
-  clearTimeout(run.timer);
-  const audio = run.audio;
-  audio.onended = audio.onerror = audio.onplaying = audio.onwaiting = null;
-  audio.pause();
-  audio.removeAttribute('src');
-  audio.load();
+  activeSpeech = null; // Invalidate pending callbacks before aborting playback.
+  if (run) run.stop();
 }
 
 function splitSpeechText(text){
@@ -827,10 +873,10 @@ function renderExamples(entry){
     addText('p', example.sentence, 'example-sentence').lang = 'en';
     const audio = document.createElement('div');
     audio.className = 'example-audio';
-    [['🔊 播放例句', 0.9], ['慢速播放', 0.7]].forEach(([label, rate]) => {
+    [['🔊 播放例句', 'normal'], ['慢速播放', 'slow']].forEach(([label, speed]) => {
       const btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'secondary'; btn.textContent = label;
-      btn.addEventListener('click', () => speakWord(example.sentence, rate));
+      btn.addEventListener('click', () => speakWord(example.sentence, speed));
       audio.appendChild(btn);
     });
     block.appendChild(audio);
@@ -1636,7 +1682,8 @@ el('exportProgressBtn').addEventListener('click', () => {
     exportedAt: new Date().toISOString(),
     userName: localStorage.getItem(NAME_KEY) || el('userName').value || '',
     mastery: loadMastery(),
-    quizProgress: loadProgress()
+    quizProgress: loadProgress(),
+    voiceSource: loadVoiceSource()
   };
   if (el('exportIncludeGeminiKeyChk').checked) {
     data.aiSettings = loadAISettings();
@@ -1676,6 +1723,10 @@ el('importProgressFile').addEventListener('change', (e) => {
       }
       if (data.quizProgress && Array.isArray(data.quizProgress.quizWords) && data.quizProgress.quizWords.length > 0) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data.quizProgress));
+      }
+      if (data.voiceSource === 'webspeech' || data.voiceSource === 'google') {
+        saveVoiceSource(data.voiceSource);
+        el('voiceSource').value = data.voiceSource;
       }
       if (data.aiSettings && typeof data.aiSettings === 'object') {
         saveAISettings(data.aiSettings);
