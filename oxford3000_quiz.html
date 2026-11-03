@@ -94,6 +94,7 @@
     <div class="actions" id="practiceActions">
       <button class="secondary hidden" id="reviewBtn">🔁 複習測驗</button>
       <button class="secondary hidden" id="flashcardBtn">📇 閃卡複習</button>
+      <button class="secondary hidden" id="chunkBookmarkBtn">🔖 語塊書籤</button>
     </div>
 
     <div class="actions">
@@ -214,6 +215,16 @@
     <div class="actions">
       <button id="startReviewFromFlashcardBtn">📝 開始複習測驗（最多 20 題）</button>
       <button class="secondary" id="backFromFlashcardBtn">← 返回</button>
+    </div>
+  </div>
+
+  <!-- CHUNK BOOKMARK SCREEN -->
+  <div class="card hidden" id="chunkBookmarkScreen">
+    <h2 style="margin:0;">🔖 語塊書籤 <span id="chunkBookmarkCount" style="color:var(--color-text-tertiary); font-size:.9rem; font-weight:400;"></span></h2>
+    <p class="sub">書籤只供查閱，不影響學習進度。按 ★ 移除後，離開這個畫面前都可以再按回來。</p>
+    <div id="chunkBookmarkList"></div>
+    <div class="actions">
+      <button class="secondary" id="backFromChunkBookmarksBtn">← 返回</button>
     </div>
   </div>
 
